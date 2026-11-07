@@ -34,18 +34,28 @@ async function readCommand(request) {
   return value
 }
 /** Auth/origin enforcement belongs to the official Connection fetch carrier. */
-export async function apply(ctx) {
+export async function apply(ctx, config) {
   ctx.effect(() => ctx.settings.configure({ auto: false }, ctx.fiber))
   const domain = await ctx.storageDomain.open(domainSpec)
-  let disposed = false, settingsUrl
-  const store = createSettingsStore(ctx.settings, name)
+  let disposed = false, settingsUrl, store, host, unregister
+  // Register cleanup immediately after acquisition, including partially failed initialization.
+  ctx.effect(() => async () => {
+    disposed = true
+    const errors = []
+    for (const release of [() => unregister?.(), () => host?.dispose(), () => store?.close(), () => domain.close()]) {
+      try { await release() } catch (error) { errors.push(error) }
+    }
+    if (errors.length) throw new AggregateError(errors, 'ASSISTANT_CLEANUP_FAILED')
+  })
+  const namespace = ctx.fiber.entry?.options.id ?? name
+  store = createSettingsStore(ctx.settings, namespace, () => config.get())
   const settings = store.read, saveSettings = store.save
-  const host = createResidentHost({ ctx, settings, saveSettings, binding: domain.global, deviceFactory: openDesktopDevice, speech: optionalNativeSpeech(ctx), pet: optionalPetPresenter(ctx),
+  host = createResidentHost({ ctx, settings, saveSettings, binding: domain.global, deviceFactory: openDesktopDevice, speech: optionalNativeSpeech(ctx), pet: optionalPetPresenter(ctx),
     credentials: createSpeechCredentials(ctx.credentials, credentialKey),
     installTools: agent => installNativeManagement({ ctx, agent, settings, ledger: domain.table('requests'), defineTool }),
     openSettings: () => { if (!settingsUrl) throw Error('ASSISTANT_SETTINGS_URL_UNAVAILABLE'); return host.openSettings(settingsUrl) },
   })
-  const unregister = ctx.connection.fetch.register({ path: '/api/voice-assistant', methods: ['GET','POST'], requestBody: 'buffered',
+  unregister = ctx.connection.fetch.register({ path: '/api/voice-assistant', methods: ['GET','POST'], requestBody: 'buffered',
     async fetch(request) {
       if (disposed) return json({ error: 'ASSISTANT_CLOSED' }, 503)
       const url = new URL(request.url)
@@ -54,5 +64,5 @@ export async function apply(ctx) {
       catch (error) { return json({ error: /^[A-Z][A-Z0-9_]{1,100}$/.test(error?.message) ? error.message : 'ASSISTANT_OPERATION_FAILED' }, 400) }
     },
   })
-  ctx.effect(() => async () => { disposed = true; await unregister(); await host.dispose(); await store.close(); await domain.close() })
+
 }

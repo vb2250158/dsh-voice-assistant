@@ -1,4 +1,4 @@
-# 语音助手（Windows 候选 0.1.2）
+# 语音助手（Windows 候选 0.1.3）
 
 DSH 原生会话负责模型、工具、权限和聊天记录；共用 SDK 负责语音循环；PC 服务壳负责麦克风、扬声器、字幕和托盘。可选 Web UI 只显示状态和提交命令，关闭页面不会停止已明确开启的语音。
 
@@ -38,3 +38,5 @@ allowBuilds:
 详见 [候选验收](RESIDENT_ACCEPTANCE.md)。源码/构建测试通过不等于已经安装或完成真实麦克风、声学打断、字幕视觉和默认模型工具验收。Rabi 适配、远端工具、眼镜、原生实时语音模型另行接入。
 
 0.1.2 修复官方存储域名校验导致的 Host 导入失败：持久域使用 `voice_assistant`，HTTP 地址和插件名不变。旧域名无法通过官方 `defineDomain`，不会生成可迁移存储。设置 `VOICE_TEST_DSH_PROFILE` 为独立安装 profile，执行 `npm run test:host-contract`，直接加载该插件实际 peer 依赖与本地构建产物，并验证真实存储域关闭重开；仅测试介质使用内存。该检查不替代完整宿主和声学验收。
+
+0.1.3 修复 Settings 仅公开 ACTIVE 插件导致的初始化时序循环。启动和运行读取 Loader 注入的 volatile Config（`get()`），写回仍使用实际 entry id、官方 Settings 和 revision；初始化失败也释放已打开的存储域。完整 Loader 测试需同时设置 `VOICE_TEST_DSH_CORE` 为与独立 profile 匹配且已构建的 Core 源码目录，再运行 `npm run test:host-contract`。测试运行真实 Loader、Settings、ConfigEditor、存储域和完整插件 apply，覆盖历史配置、热更新、持久化、卸载重启及中途失败恢复；传输、凭据、模型端口和存储介质是测试替身，不代表网络或声学验收。

@@ -5,7 +5,7 @@ import {createSettingsStore} from './generated/settings-store.js'
 import {createSpeechCredentials} from '../src/speech-credentials.mjs'
 function fixture(initial={}) {
   let value=initial,revision=0,opens=0,failCleanup=false
-  const store=createSettingsStore({describe:()=>[{ns:'voice',value,revision}],async update(_ns,patch,expected){assert.equal(expected,revision);value={...value,...patch};revision++}},'voice')
+  const store=createSettingsStore({describe:()=>[{ns:'voice',value,revision}],async update(_ns,patch,expected){assert.equal(expected,revision);value={...value,...patch};revision++}},'voice',()=>value)
   const credentials=createSpeechCredentials({describeRecord:async()=>({configured:false,writable:true})},(a,b)=>a+'/'+b)
   const host=createResidentHost({ctx:{on:()=>()=>{}},settings:store.read,saveSettings:store.save,binding:{get:()=>({})},credentials,
     deviceFactory:async()=>{opens++;return {enumerateDevices:async()=>[],async close(){if(failCleanup)throw Error('PROCESS_CLEANUP_UNCONFIRMED')}}}})

@@ -1,13 +1,15 @@
 import { ResidentSettingsSchema, validateResidentSettings } from './resident-settings.mjs'
 /** Native persistence owns values. Reads remain repairable; writes validate the merged configuration first. */
-export function createSettingsStore(service, namespace) {
+export function createSettingsStore(service, namespace, readConfig) {
+  if (typeof readConfig !== 'function') throw Error('ASSISTANT_LIVE_CONFIG_REQUIRED')
   let closed=false,chain=Promise.resolve()
   const descriptor=()=>{
     const row=service.describe({redactSecrets:true}).find(row=>row.ns===namespace)
     if(!row)throw Error('ASSISTANT_SETTINGS_UNAVAILABLE')
     return row
   }
-  const read=()=>ResidentSettingsSchema(descriptor().value)
+  // Loader Config is available during apply; Settings descriptors require an ACTIVE fiber.
+  const read=()=>ResidentSettingsSchema(readConfig())
   return {read,save(patch){
     const result=chain.then(async()=>{
       if(closed)throw Error('ASSISTANT_CLOSED')
