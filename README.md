@@ -1,4 +1,4 @@
-# 语音助手（Windows 候选 0.1.3）
+# 语音助手（Windows 候选 0.1.4）
 
 DSH 原生会话负责模型、工具、权限和聊天记录；共用 SDK 负责语音循环；PC 服务壳负责麦克风、扬声器、字幕和托盘。可选 Web UI 只显示状态和提交命令，关闭页面不会停止已明确开启的语音。
 
@@ -25,7 +25,7 @@ allowBuilds:
 
 ## 构建
 
-设置 `DSH_SHARED_ASSISTANT_ROOT` 指向共享 SDK 0.11.0，`DSH_DESKTOP_SERVICE_ROOT` 指向 PC 服务壳，执行 `npm run build`。构建记录输入文件 SHA256 到 `sdk-snapshot.json` 与 `dist/build-info.json`，复制随包音频 runtime。宿主需提供现有 Electron；默认使用当前 DSH Home 下的 electron，可在进阶设置指定路径。本插件不下载模型或改开机启动。
+设置 `DSH_SHARED_ASSISTANT_ROOT` 指向共享 SDK 0.11.1，`DSH_DESKTOP_SERVICE_ROOT` 指向 PC 服务壳，执行 `npm run build`。构建记录输入文件 SHA256 到 `sdk-snapshot.json` 与 `dist/build-info.json`，复制随包音频 runtime。宿主需提供现有 Electron；默认使用当前 DSH Home 下的 electron，可在进阶设置指定路径。本插件不下载模型或改开机启动。
 
 当前构建期依赖 esbuild、zod、schemastery，生产依赖 Koffi。DSH 公开服务由 profile 提供，不将另一份 DSH Core 打入插件。旧浏览器音频 owner 已从候选入口与源码移除。
 
@@ -40,3 +40,7 @@ allowBuilds:
 0.1.2 修复官方存储域名校验导致的 Host 导入失败：持久域使用 `voice_assistant`，HTTP 地址和插件名不变。旧域名无法通过官方 `defineDomain`，不会生成可迁移存储。设置 `VOICE_TEST_DSH_PROFILE` 为独立安装 profile，执行 `npm run test:host-contract`，直接加载该插件实际 peer 依赖与本地构建产物，并验证真实存储域关闭重开；仅测试介质使用内存。该检查不替代完整宿主和声学验收。
 
 0.1.3 修复 Settings 仅公开 ACTIVE 插件导致的初始化时序循环。启动和运行读取 Loader 注入的 volatile Config（`get()`），写回仍使用实际 entry id、官方 Settings 和 revision；初始化失败也释放已打开的存储域。完整 Loader 测试需同时设置 `VOICE_TEST_DSH_CORE` 为与独立 profile 匹配且已构建的 Core 源码目录，再运行 `npm run test:host-contract`。测试运行真实 Loader、Settings、ConfigEditor、存储域和完整插件 apply，覆盖历史配置、热更新、持久化、卸载重启及中途失败恢复；传输、凭据、模型端口和存储介质是测试替身，不代表网络或声学验收。
+
+0.1.4 在设备启动前检查 Electron 路径：未安装、路径无效或文件不可读分别返回明确提示。留空仅查当前 DSH Home 下的 `electron/electron.exe`；隔离 Home 可在进阶设置中明确指定另一处已有程序，不自动跨 Home 搜索或下载。设备枚举和麦克风电平测试不需要模型密钥；有电平不等于已完成识别、播报和声学打断验收。
+
+0.1.4 同时显示原生 Chat 的终态失败，包括缺少对话模型凭据、账号退出和中断；这些记录在重新打开面板后仍可见。发送被受理不再留下长期成功提示，失败不会触发自动重试。共用显示组件版本为 0.11.1；语音循环未改。

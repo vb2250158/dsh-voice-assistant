@@ -1,7 +1,7 @@
 {
   "sdk": {
     "name": "@rabilink/assistant-runtime",
-    "version": "0.11.0",
+    "version": "0.11.1",
     "files": {
       "src/aiui-runtime.d.ts": "42c354df4dd4fce688343719e7ddc3be4ffd96db857e84ca41be0645000a2812",
       "src/aiui-runtime.js": "3d207df05d3f6a22a401e04188dfcd6e9d2b9554473f6f047d6f3f4d2f5dc957",
@@ -23,8 +23,8 @@
       "src/turn-runtime.js": "458f512c3e905c2b3a7085d0e7b5d66c61cf38ace69100a523979bb22f312e27",
       "src/voice-interaction.d.ts": "ee5e6f2ca67f763d1bd2c441bacac7730079535bcd17b5689e92b13d71e345d7",
       "src/voice-interaction.js": "b3b4121d04440e26a5ffe2297d69ff9c342d126a2b885faa974a81b8a8caf03f",
-      "ui/assistant-panel.d.ts": "69a2a83b41f389d3231a16eb1ba3103393af1829b673704b2acc953635b04b18",
-      "ui/assistant-panel.js": "1f26a97169697eca20596e751ecf4598c4e285951cbc76f59507eccf174f0a48"
+      "ui/assistant-panel.d.ts": "c7d791bc40d6a0806ad71d2899c37c7a17b2642f10742bdce51504c947ac5da1",
+      "ui/assistant-panel.js": "00deafaf29bda67b54c60d8502e5165f502a1adc1113352c772fb99d8e0ec676"
     }
   },
   "desktop": {

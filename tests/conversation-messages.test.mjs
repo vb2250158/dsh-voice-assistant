@@ -13,3 +13,19 @@ test('native Chat order owns text, visibility and streaming-to-durable identity'
   snapshot.order=['u']
   assert.deepEqual(conversationMessages(snapshot,100), [{id:'u',role:'user',text:'hello'}])
 })
+
+test('native terminal notices preserve projection order, visibility and failure details', () => {
+  const nodes=[{key:'u',kind:'user',visibility:'visible',data:{content:[{type:'text',text:'hello'}]}},
+    {key:'e',kind:'turn-error',visibility:'visible',data:{code:'MISSING_CREDENTIAL',message:'',turn:1,step:1}},
+    {key:'h',kind:'turn-error',visibility:'hidden',data:{code:'MISSING_CREDENTIAL',message:''}}]
+  const snapshot={order:['u','e','e','h'],nodes:new Map(nodes.map(node=>[node.key,node]))}
+  const projected=conversationMessages(snapshot,100)
+  assert.equal(projected.length,2);assert.equal(projected[1].notice,true)
+  assert.match(projected[1].text,/DSH 的模型设置/)
+  nodes[1].data={code:'INTERRUPTED',message:''}
+  assert.match(conversationMessages(snapshot,1)[0].text,/本轮任务已停止/)
+  nodes[1].data={code:'OTHER_ERROR',message:'sanitized provider explanation'}
+  assert.match(conversationMessages(snapshot,1)[0].text,/sanitized provider explanation/)
+  nodes[1].data={code:'toString',message:''}
+  assert.equal(typeof conversationMessages(snapshot,1)[0].text,'string')
+})

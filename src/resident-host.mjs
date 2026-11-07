@@ -1,6 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { homedir } from 'node:os'
-import { join } from 'node:path'
+import { resolveElectronExecutable } from './device-executable.mjs'
 import { setTimeout as delay } from 'node:timers/promises'
 import { createResidentInteraction } from '@rabilink/assistant-runtime/resident'
 import { openDesktopVoiceServices } from '@rabilink/desktop-voice-service/services'
@@ -24,8 +23,8 @@ export function createResidentHost({ ctx, settings, saveSettings, binding, crede
     tts: { endpoint: config.ttsEndpoint, model: config.ttsModel, voice: config.ttsVoice, credentialRef: 'tts' },
     resolveCredential: kind => credentials.resolve(kind, config[kind + 'Endpoint']),
   })
-  const newDevice = (config, signal) => deviceFactory({
-    electronExecutable: config.electronExecutable || join(process.env.DSH_HOME || join(homedir(), '.dsh'), 'electron', 'electron.exe'),
+  const newDevice = async (config, signal) => deviceFactory({
+    electronExecutable: await resolveElectronExecutable(config.electronExecutable),
     inputDeviceId: config.inputDeviceId, outputDeviceId: config.outputDeviceId, maxDurationMs: 30000, signal, onEvent: deviceEvent,
   })
   async function deviceEvent(event) {
