@@ -1,0 +1,17 @@
+{
+  "name": "@rabilink/assistant-runtime",
+  "version": "0.10.2",
+  "archiveSha256": "7d8c669149890c28d9284b093eae02160a9a1654142d456e014fab2d52458f36",
+  "sourceSha256": {
+    "aiui-runtime.js": "3d207df05d3f6a22a401e04188dfcd6e9d2b9554473f6f047d6f3f4d2f5dc957",
+    "assert-current.js": "1b30c966d8fc237835504010872615f8b4b77428fa726513647d948ba79ef3f7",
+    "assistant-session.js": "8009b3b5c0d2c1e8dc513b8ac2a6830957c05f4fd6a2a645e603da552e950e2d",
+    "conversation-runtime.js": "7dec842c1fbba1784b5f0f5e3f33fd4abd33e1a80fa6f8785ec0f888eef1ba66",
+    "decision-protocol.js": "b4b6a6b245bd60d9e2cdbf8b11602a04e01345b54980cb6578cb195e410018ad",
+    "interjection.js": "b9fc97e69523f8155d480afc3a6a9aaa1081541a9898d1d8fbbb3e885c08181f",
+    "listening-lifecycle.js": "602347e2ab79b59a919382476172aff54fc56a23db548a7bd722b80a60c8c08c",
+    "speech-playback.js": "8cb0e6e4349213589610e39a9410d20633d6ff7b7fbccab5ba96e08e2b805ba0",
+    "turn-runtime.js": "458f512c3e905c2b3a7085d0e7b5d66c61cf38ace69100a523979bb22f312e27",
+    "voice-interaction.js": "4192d54b1c0eba2cd15b9f5d1056e3f92fb4b0dd6e320a632eb8b20e7b0b6279"
+  }
+}
