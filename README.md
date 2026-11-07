@@ -10,6 +10,19 @@ DSH 原生会话负责模型、工具、权限和聊天记录；共用 SDK 负�
 
 桌宠适配支持 `dsh-pet 0.4.5-fork.3` 的显示租约协议。安装兼容版本后，在设置中选择具体桌宠，并分别控制气泡和动画；右键“开始聊天”打开同一个助手 GUI，不启动第二个会话或语音循环。未加载兼容服务时设置保持不可用，显示已加载版本或缺失原因。桌宠候选的发布、安装和视觉验收状态另见验收记录。
 
+## 固定版本安装预检
+
+先使用独立 Home、profile 和端口安装固定 Git 提交，验证后再进入正式实例的空闲切换窗口。保留 profile 清单、锁文件与配置恢复点；仅使用官方插件安装器，不覆盖 node_modules。
+
+Windows 进程组使用精确依赖 `koffi@3.1.1`。pnpm 若返回 `ERR_PNPM_IGNORED_BUILDS`，先核对包版本及其原生模块安装脚本，再在目标 profile 的 `pnpm-workspace.yaml` 合并精确许可：
+
+```yaml
+allowBuilds:
+  'koffi@3.1.1': true
+```
+
+保留既有策略，禁止通配放行全部构建脚本；重跑原官方安装命令并验证 Koffi 在实际 Host 运行时可加载。仅配置许可不代表安装或设备验收成功。与桌宠组合安装时还需核对其固定 Git 来源构建许可，以及实际加载的显示租约协议和包版本。
+
 ## 构建
 
 设置 `DSH_SHARED_ASSISTANT_ROOT` 指向共享 SDK 0.11.0，`DSH_DESKTOP_SERVICE_ROOT` 指向 PC 服务壳，执行 `npm run build`。构建记录输入文件 SHA256 到 `sdk-snapshot.json` 与 `dist/build-info.json`，复制随包音频 runtime。宿主需提供现有 Electron；默认使用当前 DSH Home 下的 electron，可在进阶设置指定路径。本插件不下载模型或改开机启动。
