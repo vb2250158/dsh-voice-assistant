@@ -14,7 +14,7 @@ import { installNativeManagement } from './native-management.mjs'
 export const name = 'dsh-voice-assistant'
 export const inject = ['settings','credentials','storageDomain','connection','sessionController']
 export const Config = ResidentSettingsSchema.volatile().default({})
-export const domainSpec = defineDomain({ name: 'voice-assistant', version: 1,
+export const domainSpec = defineDomain({ name: 'voice_assistant', version: 1,
   global: { schema: z.object({ sessionId: z.string().optional(), creating: z.boolean().optional() }), initial: {} },
   tables: { requests: domainTable(z.object({ fingerprint: z.string(), sessionId: z.string(), requestId: z.string(),
     status: z.string(), result: z.record(z.string(), z.unknown()).optional() })) },
