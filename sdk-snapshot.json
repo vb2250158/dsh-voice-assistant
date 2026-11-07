@@ -1,17 +1,55 @@
 {
-  "name": "@rabilink/assistant-runtime",
-  "version": "0.10.2",
-  "archiveSha256": "7d8c669149890c28d9284b093eae02160a9a1654142d456e014fab2d52458f36",
-  "sourceSha256": {
-    "aiui-runtime.js": "3d207df05d3f6a22a401e04188dfcd6e9d2b9554473f6f047d6f3f4d2f5dc957",
-    "assert-current.js": "1b30c966d8fc237835504010872615f8b4b77428fa726513647d948ba79ef3f7",
-    "assistant-session.js": "8009b3b5c0d2c1e8dc513b8ac2a6830957c05f4fd6a2a645e603da552e950e2d",
-    "conversation-runtime.js": "7dec842c1fbba1784b5f0f5e3f33fd4abd33e1a80fa6f8785ec0f888eef1ba66",
-    "decision-protocol.js": "b4b6a6b245bd60d9e2cdbf8b11602a04e01345b54980cb6578cb195e410018ad",
-    "interjection.js": "b9fc97e69523f8155d480afc3a6a9aaa1081541a9898d1d8fbbb3e885c08181f",
-    "listening-lifecycle.js": "602347e2ab79b59a919382476172aff54fc56a23db548a7bd722b80a60c8c08c",
-    "speech-playback.js": "8cb0e6e4349213589610e39a9410d20633d6ff7b7fbccab5ba96e08e2b805ba0",
-    "turn-runtime.js": "458f512c3e905c2b3a7085d0e7b5d66c61cf38ace69100a523979bb22f312e27",
-    "voice-interaction.js": "4192d54b1c0eba2cd15b9f5d1056e3f92fb4b0dd6e320a632eb8b20e7b0b6279"
+  "sdk": {
+    "name": "@rabilink/assistant-runtime",
+    "version": "0.11.0",
+    "files": {
+      "src/aiui-runtime.d.ts": "42c354df4dd4fce688343719e7ddc3be4ffd96db857e84ca41be0645000a2812",
+      "src/aiui-runtime.js": "3d207df05d3f6a22a401e04188dfcd6e9d2b9554473f6f047d6f3f4d2f5dc957",
+      "src/assert-current.js": "1b30c966d8fc237835504010872615f8b4b77428fa726513647d948ba79ef3f7",
+      "src/assistant-session.d.ts": "285ed2ac71ccfe7defb45303cdb891044e786cd4f74879e45fac9a3f8d12f2fe",
+      "src/assistant-session.js": "8009b3b5c0d2c1e8dc513b8ac2a6830957c05f4fd6a2a645e603da552e950e2d",
+      "src/conversation-runtime.d.ts": "246426852d644ae29d3ae3053bf84d67e8c78a1d0eae2694c667a74e27a7fa9b",
+      "src/conversation-runtime.js": "7dec842c1fbba1784b5f0f5e3f33fd4abd33e1a80fa6f8785ec0f888eef1ba66",
+      "src/decision-protocol.d.ts": "90e5865407cfcd1d7699b646da6083b982ae0e17e5dba96fffc66b3a6f66773b",
+      "src/decision-protocol.js": "b4b6a6b245bd60d9e2cdbf8b11602a04e01345b54980cb6578cb195e410018ad",
+      "src/interjection.js": "b9fc97e69523f8155d480afc3a6a9aaa1081541a9898d1d8fbbb3e885c08181f",
+      "src/listening-lifecycle.d.ts": "db8e787cbea522221dfd01068b2fdce9d034721432f635df11448a1fa2bc83ce",
+      "src/listening-lifecycle.js": "602347e2ab79b59a919382476172aff54fc56a23db548a7bd722b80a60c8c08c",
+      "src/resident-interaction.d.ts": "f1df27b435f4c8d2a3fede2d3e7044d0ec0fb8b3ef40e6f01784e73506e3ce63",
+      "src/resident-interaction.js": "947e967797c403caa97bc5c88284c6b6d2b87d109ed44bd7d4fe105a027c4bfc",
+      "src/speech-playback.d.ts": "81579ceb6da704b49c1fcbf96e77e430316f68c4e274e6636f0aa3644b650d86",
+      "src/speech-playback.js": "8cb0e6e4349213589610e39a9410d20633d6ff7b7fbccab5ba96e08e2b805ba0",
+      "src/turn-runtime.d.ts": "094cc7e53007674fefb488f52da9682e27e5a5a96e1475e9a5a4571d6f3a7395",
+      "src/turn-runtime.js": "458f512c3e905c2b3a7085d0e7b5d66c61cf38ace69100a523979bb22f312e27",
+      "src/voice-interaction.d.ts": "ee5e6f2ca67f763d1bd2c441bacac7730079535bcd17b5689e92b13d71e345d7",
+      "src/voice-interaction.js": "b3b4121d04440e26a5ffe2297d69ff9c342d126a2b885faa974a81b8a8caf03f",
+      "ui/assistant-panel.d.ts": "69a2a83b41f389d3231a16eb1ba3103393af1829b673704b2acc953635b04b18",
+      "ui/assistant-panel.js": "1f26a97169697eca20596e751ecf4598c4e285951cbc76f59507eccf174f0a48"
+    }
+  },
+  "desktop": {
+    "name": "@rabilink/desktop-voice-service",
+    "version": "0.1.0",
+    "files": {
+      "src/desktop-asr.mjs": "af94b396d8e6ac00d483668ea7d640843748640c375ad5ec9ae1c619e99b1a45",
+      "src/node-device.d.ts": "cdbd5f875b997f6546fd2720d5b3cea467ecf7f08b99e3e8a86bd0050dc4ad18",
+      "src/node-device.mjs": "41be731f5babe8dc74a1ca20cd0b65f757a16bb9f189cf64fc4ad757167d3001",
+      "src/providers.d.ts": "d84a22858406d351c2037a7024434fa62763218a0893c552de0c35462d960eba",
+      "src/providers.mjs": "ae4bc23eff8202f4c7e7879ac3c134bf6a29832c8059c248b76b1bb93a861fd4",
+      "src/services.mjs": "aa028a8c490e84531157fa24faf6dea5d9acdfdcb3818c60610b12c11e2a4e23",
+      "src/windows-job.mjs": "2ee30fea845a29de0cebdb280330d52fb4b68c606aa310ccc724ee3522d63aad",
+      "runtime/audio.html": "72de16bd298f5b853bb6eac2841d554fce1930ac2aed025f31ab6d5afdc6192e",
+      "runtime/caption.css": "8706e66083fe6cae1cdccfcf5f6ac6a24aee66ace3411231130b721e7ad3c63a",
+      "runtime/caption.html": "9fc17c68b3e389c8e082ab458f775fb872ae1b79642b86d4f0f8cbe0502905a9",
+      "runtime/caption.js": "91adbb3b1932ba3a4efbf2d23e7d1fbdec28428b13a275d703611fa4bd4e5433",
+      "runtime/capture-worklet.js": "621d07f6507688d1ae35234fc9b6f507528b9331d5837270e74fe2375399270d",
+      "runtime/capture.mjs": "4650c9962788b76d95a3a69267a2e8b97f477b2382cfb3acd6ffc6f01ea3c44f",
+      "runtime/main.cjs": "c45fb76dd86be36e71edbca5e2295bed3274258b6fa9cd2ae1aa7b999e9e592c",
+      "runtime/preload.cjs": "09649755a15734d8b1533e0937d6de5c9e39afef93b11167df1c65b6375204fa",
+      "runtime/recording.ts": "a2e208820f93cd13ae708fc376ead2e58a1d5e9b119903d22d2738d377f49560",
+      "runtime/renderer.js": "4c445dc62d0b79dea13d8d2f5cf8272873e856cf52fc0f1f8b94c07187b62fc6",
+      "runtime/renderer.mjs": "967b4998ce307274e0be669839854a5cd120316a68061326b900cfc4e0fba1eb",
+      "runtime/voice.png": "faa9593fa7952696634ca0e4c7e80fcce10ef13760e8c03847f8a174c216528a"
+    }
   }
 }

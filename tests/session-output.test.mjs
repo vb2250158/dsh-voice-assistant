@@ -54,3 +54,13 @@ test('late source notifications after close cannot start playback', () => {
   notify()
   assert.equal(started, 0)
 })
+test('text presentation continues when the voice owner is stopped', () => {
+  let snapshot = { revision: 0 }, notify
+  const frames = [], source = { getSnapshot:()=>snapshot, subscribe(fn){notify=fn;return()=>{notify=undefined}} }
+  const stop=observeSessionOutput({eventSource:source,voice:{beginResponse:()=>null},onText:frame=>frames.push(frame),onError:error=>{throw error}})
+  for(const [i,text] of ['hello',' world'].entries()) {
+    snapshot={revision:i+1,change:{kind:'append',entries:[{type:'transient',event:{type:'assistant/live-chunk',data:{attemptId:'a',chunk:{type:'text-delta',text}}}}]}}
+    notify()
+  }
+  assert.deepEqual(frames,[{responseId:'a',text:'hello'},{responseId:'a',text:'hello world'}]);stop()
+})

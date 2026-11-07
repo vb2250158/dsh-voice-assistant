@@ -1,5 +1,5 @@
 /** Project new native Session text into shared voice response tokens. */
-export function observeSessionOutput({ eventSource, voice, onError }) {
+export function observeSessionOutput({ eventSource, voice, onError, onText = () => {} }) {
   let closed = false
   let revision = eventSource.getSnapshot().revision
   const responses = new Map()
@@ -37,8 +37,11 @@ export function observeSessionOutput({ eventSource, voice, onError }) {
       const { attemptId, turn, step, chunk } = entry.event.data
       if (chunk.type !== 'text-delta' || typeof chunk.text !== 'string' || !chunk.text) continue
       const key = String(attemptId)
-      if (!responses.has(key)) { foreground = key; responses.set(key, { token:voice.beginResponse({ id: key }), turn, step, confirmed:false }) }
-      responses.get(key)?.token.append(chunk.text)
+      if (!responses.has(key)) { foreground = key; responses.set(key, { token:voice.beginResponse({ id: key }) ?? { append() {}, finish() {} }, turn, step, confirmed:false, text: '' }) }
+      const response = responses.get(key)
+      response.token.append(chunk.text)
+      response.text = (response.text + chunk.text).slice(-16000)
+      if (foreground === key) onText({ responseId: key, text: response.text })
     }
   }
   const unsubscribe = eventSource.subscribe(() => { try { update() } catch (error) { onError(error) } })
