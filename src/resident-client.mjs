@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Button, Input, Modal, IconMicrophoneOutlineRegular } from '@deepseek-ai/dsh-client-ui-primitives'
 import { createAssistantPanel } from '@rabilink/assistant-runtime/ui'
-import { conversationMessages } from './conversation-messages.mjs'
+import { subscribeConversation } from './subscribe-conversation.mjs'
 const namespace='dsh-voice-assistant'
 const deviceErrors = {
   DEVICE_ELECTRON_NOT_FOUND:'未找到 Electron。请在设置 → 进阶填写已安装的 electron.exe 绝对路径并保存；留空只查当前 DSH Home。',
@@ -20,17 +20,8 @@ export function apply(ctx) {
     if(!response.ok)throw Error(deviceErrors[result.error]||result.error||'ASSISTANT_CONNECTION_FAILED')
     return result
   }
-  const adapter={read:()=>request(),command:request,subscribeConversation(sessionId,onMessages,onError){
-    let closed=false,unsubscribe
-    const ref=ctx.sessions.retain(sessionId,{source:'voiceAssistant'})
-    void ref.ready.then(binding=>{
-      if(closed)return
-      const source=ctx.uiConversation.binding(binding).target('chat')
-      const update=()=>{if(!closed)onMessages(conversationMessages(source.getSnapshot(),100))}
-      unsubscribe=source.subscribe(update);update()
-    }).catch(error=>{if(!closed)onError(error)})
-    return ()=>{closed=true;unsubscribe?.();ref.release()}
-  }}
+  const adapter={read:()=>request(),command:request,subscribeConversation:(sessionId,onMessages,onError)=>
+    subscribeConversation(ctx,sessionId,onMessages,onError)}
   const Panel=createAssistantPanel(React,{Button,Input,Modal})
   ctx.provide('dshAssistant',{open(){ctx.layout.selectPanel(namespace)}})
   ctx.slots.inject('main',()=>ctx.slots.register({name:'main',key:namespace,locale:namespace},()=>React.createElement(Panel,{adapter})))
