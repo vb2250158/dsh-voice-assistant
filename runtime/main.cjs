@@ -8,7 +8,7 @@ if(!pipe||!nonce||!userData)process.exit(2)
 app.setName('语音助手');app.setPath('userData',userData)
 app.commandLine.appendSwitch('autoplay-policy','no-user-gesture-required')
 const ROOT=pathToFileURL(__dirname+'/').href,PAGE=pathToFileURL(join(__dirname,'audio.html')).href
-const METHODS=new Set(['devices.list','record.start','record.take','record.mark','record.dispose','player.create','player.play','player.stop','player.dispose'])
+const METHODS=new Set(['devices.list','record.start','record.take','record.mark','record.dispose','player.create','player.play','player.stop','player.dispose','player.stream.create','player.stream.append','player.stream.finish'])
 const MAX=24*1024*1024
 let win,caption,tray,captionSettings={enabled:true,locked:false,skin:'dark',fontSize:24,opacity:0.85,position:'bottom'},lastPresentation={},moveTimer,captionQueue=Promise.resolve(),quitting=false
 const socket=connect(pipe)

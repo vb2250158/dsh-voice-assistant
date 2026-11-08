@@ -100,8 +100,16 @@
           item.node.port.onmessage = (event) => {
             if (item.closed || !(event.data instanceof Float32Array)) return;
             const chunk = event.data;
-            item.chunks.push(chunk);
-            item.samples += chunk.length;
+            if (p.streaming) {
+              const bytes = new Uint8Array(chunk.length * 2), view = new DataView(bytes.buffer);
+              for (let i = 0; i < chunk.length; i++) view.setInt16(i * 2, Math.max(-32768, Math.min(32767, Math.round(chunk[i] * 32768))), true);
+              let binary = "";
+              for (const byte of bytes) binary += String.fromCharCode(byte);
+              send2({ event: "record.pcm", id: p.id, audio: btoa(binary) });
+            } else {
+              item.chunks.push(chunk);
+              item.samples += chunk.length;
+            }
             let sum = 0;
             for (const value of chunk) sum += value * value;
             send2({ event: "record.level", id: p.id, value: Math.sqrt(sum / chunk.length) });
@@ -140,11 +148,116 @@
     };
   }
 
+  // runtime/stream-players.mjs
+  function createStreamPlayers({ AudioContext: AudioContext2, send: send2, maxQueuedSeconds = 60 }) {
+    const players2 = /* @__PURE__ */ new Map();
+    const current = (id) => {
+      const item = players2.get(id);
+      if (!item || item.stopped) throw Error("DEVICE_STREAM_MISSING");
+      return item;
+    };
+    const ended = (item) => {
+      if (item.finished && !item.stopped && !item.queue.length && !item.sources.size && !item.ended) {
+        item.ended = true;
+        send2({ event: "player.ended", id: item.id });
+      }
+    };
+    const pump = (item) => {
+      if (!item.playing || item.stopped) return;
+      for (const samples of item.queue.splice(0)) {
+        const buffer = item.context.createBuffer(1, samples.length, item.rate);
+        buffer.getChannelData(0).set(samples);
+        const source = item.context.createBufferSource();
+        source.buffer = buffer;
+        source.connect(item.context.destination);
+        item.sources.add(source);
+        source.onended = () => {
+          source.disconnect();
+          if (!item.sources.delete(source)) return;
+          item.queuedSamples -= samples.length;
+          ended(item);
+        };
+        const start = Math.max(item.context.currentTime + 0.02, item.tail);
+        item.tail = start + samples.length / item.rate;
+        source.start(start);
+      }
+      ended(item);
+    };
+    const stop = (item) => {
+      if (item.stopped) return;
+      item.stopped = true;
+      item.queue = [];
+      for (const source of item.sources) {
+        source.onended = null;
+        source.stop();
+        source.disconnect();
+      }
+      item.sources.clear();
+      item.queuedSamples = 0;
+    };
+    return {
+      has: (id) => players2.has(id),
+      async create({ id, sampleRate, outputDeviceId }) {
+        if (players2.has(id) || players2.size >= 4 || ![8e3, 16e3, 22050, 24e3, 32e3, 44100, 48e3].includes(sampleRate)) throw Error("DEVICE_STREAM_CONFIG_INVALID");
+        const context = new AudioContext2({ sampleRate });
+        const item = { id, rate: sampleRate, context, queue: [], sources: /* @__PURE__ */ new Set(), queuedSamples: 0, tail: 0, playing: false, stopped: false, finished: false, ended: false };
+        players2.set(id, item);
+        try {
+          if (outputDeviceId) {
+            if (typeof context.setSinkId !== "function") throw Error("DEVICE_OUTPUT_SELECTION_UNSUPPORTED");
+            await context.setSinkId(outputDeviceId);
+          }
+          await context.suspend();
+          if (item.stopped) throw Error("DEVICE_STREAM_MISSING");
+        } catch (error) {
+          await context.close();
+          players2.delete(id);
+          throw error;
+        }
+      },
+      append(id, bytes) {
+        const item = current(id);
+        if (item.finished || !(bytes instanceof Uint8Array) || !bytes.length || bytes.length % 2 || bytes.length > 256e3) throw Error("DEVICE_PCM_INVALID");
+        const length = bytes.length / 2;
+        if (item.queuedSamples + length > item.rate * maxQueuedSeconds) throw Error("DEVICE_PLAYBACK_BACKLOG");
+        const samples = new Float32Array(length), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+        for (let i = 0; i < length; i++) samples[i] = view.getInt16(i * 2, true) / 32768;
+        item.queuedSamples += length;
+        item.queue.push(samples);
+        pump(item);
+      },
+      async play(id) {
+        const item = current(id);
+        await item.context.resume();
+        if (item.stopped) return;
+        item.playing = true;
+        pump(item);
+      },
+      finish(id) {
+        const item = current(id);
+        item.finished = true;
+        ended(item);
+      },
+      stop(id) {
+        const item = players2.get(id);
+        if (item) stop(item);
+      },
+      async dispose(id) {
+        const item = players2.get(id);
+        if (!item) return;
+        stop(item);
+        await item.context.close();
+        players2.delete(id);
+      }
+    };
+  }
+
   // runtime/renderer.mjs
   var players = /* @__PURE__ */ new Map();
   var send = (value) => window.audioDevice.send(value);
   var MAX_BYTES = 16 * 1024 * 1024;
   var capture = createCaptureRegistry({ mediaDevices: navigator.mediaDevices, AudioContext, AudioWorkletNode, send });
+  var streams = createStreamPlayers({ AudioContext, send });
   function releasePlayer(id) {
     const item = players.get(id);
     if (!item) return;
@@ -166,6 +279,33 @@
     if (method === "record.dispose") {
       await capture.release(p.id);
       return true;
+    }
+    if (method === "player.stream.create") {
+      await streams.create(p);
+      return true;
+    }
+    if (method === "player.stream.append") {
+      if (typeof p.audio !== "string" || p.audio.length > 35e4) throw Error("DEVICE_PCM_INVALID");
+      streams.append(p.id, Uint8Array.from(atob(p.audio), (c) => c.charCodeAt(0)));
+      return true;
+    }
+    if (method === "player.stream.finish") {
+      streams.finish(p.id);
+      return true;
+    }
+    if (streams.has(p.id)) {
+      if (method === "player.play") {
+        await streams.play(p.id);
+        return true;
+      }
+      if (method === "player.stop") {
+        streams.stop(p.id);
+        return true;
+      }
+      if (method === "player.dispose") {
+        await streams.dispose(p.id);
+        return true;
+      }
     }
     if (method === "player.create") {
       if (players.size >= 4 || typeof p.audio !== "string" || p.audio.length > Math.ceil(MAX_BYTES / 3) * 4) throw Error("DEVICE_AUDIO_LIMIT");

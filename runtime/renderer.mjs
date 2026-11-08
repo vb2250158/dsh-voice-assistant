@@ -1,9 +1,11 @@
 import {encodeWave,audioBase64} from './recording.ts'
 import {createCaptureRegistry} from './capture.mjs'
+import {createStreamPlayers} from './stream-players.mjs'
 const players=new Map()
 const send=value=>window.audioDevice.send(value)
 const MAX_BYTES=16*1024*1024
 const capture=createCaptureRegistry({mediaDevices:navigator.mediaDevices,AudioContext,AudioWorkletNode,send})
+const streams=createStreamPlayers({AudioContext,send})
 function releasePlayer(id){
   const item=players.get(id);if(!item)return
   players.delete(id);item.audio.pause();item.audio.removeAttribute('src');item.audio.load();URL.revokeObjectURL(item.url)
@@ -15,6 +17,17 @@ async function command(method,p){
   if(method==='record.mark'){capture.mark(p.id);return true}
   if(method==='record.take')return {audio:audioBase64(encodeWave(capture.take(p.id)))}
   if(method==='record.dispose'){await capture.release(p.id);return true}
+  if(method==='player.stream.create'){await streams.create(p);return true}
+  if(method==='player.stream.append'){
+    if(typeof p.audio!=='string'||p.audio.length>350000)throw Error('DEVICE_PCM_INVALID')
+    streams.append(p.id,Uint8Array.from(atob(p.audio),c=>c.charCodeAt(0)));return true
+  }
+  if(method==='player.stream.finish'){streams.finish(p.id);return true}
+  if(streams.has(p.id)){
+    if(method==='player.play'){await streams.play(p.id);return true}
+    if(method==='player.stop'){streams.stop(p.id);return true}
+    if(method==='player.dispose'){await streams.dispose(p.id);return true}
+  }
   if(method==='player.create'){
     if(players.size>=4||typeof p.audio!=='string'||p.audio.length>Math.ceil(MAX_BYTES/3)*4)throw Error('DEVICE_AUDIO_LIMIT')
     const bytes=Uint8Array.from(atob(p.audio),c=>c.charCodeAt(0))

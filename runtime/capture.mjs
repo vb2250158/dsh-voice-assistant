@@ -51,7 +51,13 @@ export function createCaptureRegistry({ mediaDevices, AudioContext, AudioWorklet
         item.source.connect(item.node); item.node.connect(item.gain); item.gain.connect(item.context.destination);
         item.node.port.onmessage = event => {
           if (item.closed || !(event.data instanceof Float32Array)) return;
-          const chunk = event.data; item.chunks.push(chunk); item.samples += chunk.length;
+          const chunk = event.data;
+          if (p.streaming) {
+            const bytes = new Uint8Array(chunk.length * 2), view = new DataView(bytes.buffer);
+            for (let i = 0; i < chunk.length; i++) view.setInt16(i * 2, Math.max(-32768, Math.min(32767, Math.round(chunk[i] * 32768))), true);
+            let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
+            send({ event: 'record.pcm', id: p.id, audio: btoa(binary) });
+          } else { item.chunks.push(chunk); item.samples += chunk.length; }
           let sum = 0; for (const value of chunk) sum += value * value;
           send({ event: 'record.level', id: p.id, value: Math.sqrt(sum / chunk.length) });
           if (!item.spoken) while (item.samples > 8000 && item.chunks.length > 1) item.samples -= item.chunks.shift().length;

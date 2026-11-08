@@ -78,7 +78,7 @@ export function createNativeSession(ctx, { settings, binding, installTools = () 
     return opening
   }
   return {
-    open, getSessionId: () => id,
+    open, getSessionId: () => id, getModel: () => attached?.model.current(),
     eventSource: { getSnapshot: () => snapshot, subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn) } },
     async submit(text, requestId) {
       if (typeof text !== 'string' || !text.trim() || text.length > 16000) throw Error('ASSISTANT_INPUT_INVALID')

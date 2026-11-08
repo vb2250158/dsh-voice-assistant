@@ -1,3 +1,4 @@
+import { updateProviderProfiles } from '@rabilink/desktop-voice-service/provider-profiles'
 import { ResidentSettingsSchema, validateResidentSettings } from './resident-settings.mjs'
 /** Native persistence owns values. Reads remain repairable; writes validate the merged configuration first. */
 export function createSettingsStore(service, namespace, readConfig) {
@@ -15,8 +16,9 @@ export function createSettingsStore(service, namespace, readConfig) {
       if(closed)throw Error('ASSISTANT_CLOSED')
       const current=descriptor(),before=ResidentSettingsSchema(current.value)
       if(!patch||typeof patch!=='object'||Array.isArray(patch)||Object.keys(patch).some(key=>!(key in before)))throw Error('ASSISTANT_SETTINGS_INVALID')
-      validateResidentSettings({...before,...patch})
-      await service.update(namespace,patch,current.revision)
+      const next = updateProviderProfiles(before, patch, 'dsh')
+      validateResidentSettings(next)
+      await service.update(namespace, next, current.revision)
     })
     chain=result.catch(()=>{})
     return result
