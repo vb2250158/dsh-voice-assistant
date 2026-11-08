@@ -1,4 +1,4 @@
-# 语音助手（Windows 候选 0.1.10）
+# 语音助手（Windows 候选 0.1.11）
 
 DSH 原生会话负责模型、工具、权限和聊天记录；共用 SDK 负责语音循环；PC 服务壳负责麦克风、扬声器、字幕和托盘。可选 Web UI 只显示状态和提交命令，关闭页面不会停止已明确开启的语音。
 
@@ -9,6 +9,10 @@ DSH 原生会话负责模型、工具、权限和聊天记录；共用 SDK 负�
 独立字幕支持字号、透明度、皮肤、拖拽、调整大小和锁定；托盘提供暂停、静音、显示/隐藏字幕、解锁和停止入口。多屏变化时字幕会回到可见工作区。
 
 桌宠适配支持 `dsh-pet 0.4.5-fork.3` 的显示租约协议。安装兼容版本后，在设置中选择具体桌宠，并分别控制气泡和动画；右键“开始聊天”打开同一个助手 GUI，不启动第二个会话或语音循环。未加载兼容服务时设置保持不可用，显示已加载版本或缺失原因。桌宠候选的发布、安装和视觉验收状态另见验收记录。
+
+## 0.1.11 候选
+
+更新共享桌面语音服务至 0.3.1，修复停止语音时设备提前关闭的竞态。
 
 ## 0.1.10 候选
 
@@ -35,7 +39,7 @@ allowBuilds:
 
 ## 构建
 
-设置 `DSH_SHARED_ASSISTANT_ROOT` 指向共享 SDK 0.13.1，`DSH_DESKTOP_SERVICE_ROOT` 指向 PC 服务壳 0.3.0，执行 `npm run build`。构建记录输入文件 SHA256 到 `sdk-snapshot.json` 与 `dist/build-info.json`，复制随包音频 runtime。宿主需提供现有 Electron；默认使用当前 DSH Home 下的 electron，可在进阶设置指定路径。本插件不下载模型或改开机启动。
+设置 `DSH_SHARED_ASSISTANT_ROOT` 指向共享 SDK 0.13.1，`DSH_DESKTOP_SERVICE_ROOT` 指向 PC 服务壳 0.3.1，执行 `npm run build`。构建记录输入文件 SHA256 到 `sdk-snapshot.json` 与 `dist/build-info.json`，复制随包音频 runtime。宿主需提供现有 Electron；默认使用当前 DSH Home 下的 electron，可在进阶设置指定路径。本插件不下载模型或改开机启动。
 
 当前构建期依赖 esbuild、zod、schemastery，生产依赖 Koffi 和 WebSocket 客户端 ws。DSH 公开服务由 profile 提供，不将另一份 DSH Core 打入插件。旧浏览器音频 owner 已从候选入口与源码移除。
 

@@ -32,16 +32,16 @@
     },
     "desktop": {
       "name": "@rabilink/desktop-voice-service",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "files": {
-        "src/assistant-host.mjs": "ac1d63ef8675b9a0230d9f77033c6736f594a34a4fcb7148c1669fac2290704c",
+        "src/assistant-host.mjs": "3d4b047bbb8ebf29ba98ad733721a587b4b63010d90f9439fced3f889c621435",
         "src/assistant-settings.mjs": "d8cdb9dd4e3a6cb9317a6126821235e19676422101493110475a9e3eca8c5898",
         "src/chat-model.mjs": "a4490beee64532db0a55e26dd712caedf8823bd1f7f7ba3bbb0c7f47c312d786",
         "src/desktop-asr.mjs": "af94b396d8e6ac00d483668ea7d640843748640c375ad5ec9ae1c619e99b1a45",
         "src/device-executable.mjs": "f4fddc04a159097f189d359ceedbaa81caab55d079de089bcbedf291780ddea0",
         "src/model-providers.mjs": "7275464547179e8170af5f0d5daeb146509a9ce577e035d7a9bc5c0ead8f09d7",
         "src/node-device.d.ts": "4e4675624ed039bfbb0c9840896c2342c735cb02e36d597e56270049a62628f8",
-        "src/node-device.mjs": "e8eb6ca1edd3b4acc2851bd73db6cb03aa640bd5f51aaf3a361b1199dfef06f3",
+        "src/node-device.mjs": "96555802622dc4f8174757561b2c3fd605ffaeda7b02674e316e959e6ce997de",
         "src/presenter-settings.mjs": "8ff30e1d5d29cff452837d8672bc0379e48783ea7bd5a12354f39f500a900bff",
         "src/provider-profiles.mjs": "efd8e935c3d81204085b188017115ab74f0bc5029d7d15571fb8265e22bf6e7c",
         "src/providers.d.ts": "d84a22858406d351c2037a7024434fa62763218a0893c552de0c35462d960eba",
@@ -72,6 +72,6 @@
       }
     }
   },
-  "hostSha256": "e3080f7b079eb29f0746ca74000ba1b71e7585974d1cf5bb479a9b3d95788e6c",
+  "hostSha256": "977566fd91aa3912ceaf5be29e4ec49f04a117309a9d6b5e670054b28c2d97c7",
   "clientSha256": "f124da5e5f4f8ea2d3f976a5001901249edda3222bdcab97be01df71710edc7b"
 }
