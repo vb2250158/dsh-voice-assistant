@@ -3,7 +3,7 @@
   "inputs": {
     "sdk": {
       "name": "@rabilink/assistant-runtime",
-      "version": "0.12.0",
+      "version": "0.12.1",
       "files": {
         "src/aiui-runtime.d.ts": "a8dec172d2a8582a87c2566b98b5d126c2230d56de4369098ece1e441ba91584",
         "src/aiui-runtime.js": "5f50914ee47534626b414680971089d3283fe645105b2e9f705582897bf111e0",
@@ -25,8 +25,9 @@
         "src/turn-runtime.js": "458f512c3e905c2b3a7085d0e7b5d66c61cf38ace69100a523979bb22f312e27",
         "src/voice-interaction.d.ts": "ee5e6f2ca67f763d1bd2c441bacac7730079535bcd17b5689e92b13d71e345d7",
         "src/voice-interaction.js": "1654c9fa52a1b3f85573c652a0643eeb2c6bb7b0c895f4eb042a47cffe81cea0",
+        "ui/assistant-panel-styles.js": "248b4df09d6bf70b8399fa9d1b2d3284ae7c2e7420631d0d3021ebe14aeeadc1",
         "ui/assistant-panel.d.ts": "c7d791bc40d6a0806ad71d2899c37c7a17b2642f10742bdce51504c947ac5da1",
-        "ui/assistant-panel.js": "2f6723f1e9ab4edd8609855b3f152c17d6b476c7f7ef6f709b6c298f113b4acc"
+        "ui/assistant-panel.js": "f5234d039d6794b5da3b5009df9e3c7140e8a3c972dde78eb1fe5cae4430a00d"
       }
     },
     "desktop": {
@@ -72,5 +73,5 @@
     }
   },
   "hostSha256": "61dbd8c65f5228930e4a0a0115ca4b32606fe9a458616cbd523ca91fc45af4bc",
-  "clientSha256": "b22e3b068f3c1a18adb6b07bee1c70fd2c15d883649d92cff976d4599f522d7d"
+  "clientSha256": "4cd65b54d366d80735c1b829aac5c165aae8ef1321b98aff09782886d358cac0"
 }

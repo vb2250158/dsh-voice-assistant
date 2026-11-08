@@ -14,7 +14,7 @@ async function snapshot(root,folders){
   return {name:pkg.name,version:pkg.version,files}
 }
 const inputs={sdk:await snapshot(sdk,['src','ui']),desktop:await snapshot(pc,['src','runtime'])}
-if(inputs.sdk.name!=='@rabilink/assistant-runtime'||inputs.sdk.version!=='0.12.0'||inputs.desktop.name!=='@rabilink/desktop-voice-service'||inputs.desktop.version!=='0.2.0')throw Error('Unexpected shared input')
+if(inputs.sdk.name!=='@rabilink/assistant-runtime'||inputs.sdk.version!=='0.12.1'||inputs.desktop.name!=='@rabilink/desktop-voice-service'||inputs.desktop.version!=='0.2.0')throw Error('Unexpected shared input')
 const entries={
   '@rabilink/assistant-runtime/resident':join(sdk,'src/resident-interaction.js'),
   '@rabilink/assistant-runtime/aiui':join(sdk,'src/aiui-runtime.js'),
