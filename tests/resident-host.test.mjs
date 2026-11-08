@@ -114,3 +114,20 @@ test('ASR model selection restores model parameters and changes the resource',as
   assert.equal(state.settings.asrRecognitionMode,'utterance')
   await f.host.dispose()
 })
+
+test('reads frozen provider profiles supplied by the DSH Loader',async()=>{
+  const profile=Object.freeze({endpoint:'wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_async',model:'bigmodel',asrEnableItn:true})
+  const profiles=Object.freeze({asr:Object.freeze({volcengine:profile}),tts:Object.freeze({})})
+  const f=fixture({asrMode:'volcengine',asrEndpoint:profile.endpoint,asrModel:profile.model,speechProfiles:profiles})
+  const state=await f.host.state()
+  assert.equal(state.settings.speechProfiles.asr.volcengine.asrEnableItn,true)
+  assert.deepEqual(profile,{endpoint:'wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_async',model:'bigmodel',asrEnableItn:true})
+  assert.equal(Object.isFrozen(profile),true)
+  await f.host.dispose()
+})
+
+test('rejects malformed provider profile values without exposing them',async()=>{
+  for(const item of ['true',NaN,{},'x'.repeat(3000)]){
+    assert.throws(()=>fixture({speechProfiles:{asr:{volcengine:{asrEnableItn:item}}}}),/ASSISTANT_SETTINGS_INVALID/)
+  }
+})

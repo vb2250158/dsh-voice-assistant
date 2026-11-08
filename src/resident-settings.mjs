@@ -20,12 +20,42 @@ const speechFields = Object.fromEntries(Object.entries(speechDefinitions).map(([
   else throw Error('ASSISTANT_SPEECH_DEFINITION_INVALID')
   return [key, field.default(spec.default)]
 }))
+/** Validate and copy persisted provider profiles without mutating Loader-owned objects. */
+function parseSpeechProfiles(value) {
+  const record = item => item !== null && typeof item === 'object' && !Array.isArray(item)
+  const safeKey = key => key.length > 0 && key.length <= 256 && !['__proto__', 'prototype', 'constructor'].includes(key)
+  if (!record(value) || Object.keys(value).some(kind => !['asr', 'tts'].includes(kind))) throw Error('ASSISTANT_SETTINGS_INVALID')
+  const result = {}
+  for (const [kind, profiles] of Object.entries(value)) {
+    if (!record(profiles) || Object.keys(profiles).length > 128) throw Error('ASSISTANT_SETTINGS_INVALID')
+    const copied = {}
+    for (const [id, profile] of Object.entries(profiles)) {
+      if (!safeKey(id) || !record(profile) || Object.keys(profile).length > 256) throw Error('ASSISTANT_SETTINGS_INVALID')
+      const fields = {}
+      for (const [key, item] of Object.entries(profile)) {
+        if (!safeKey(key)) throw Error('ASSISTANT_SETTINGS_INVALID')
+        const spec = speechDefinitions[key]
+        if (spec && key.startsWith(kind)) {
+          if (typeof item !== typeof spec.default || spec.enum && !spec.enum.includes(item)
+            || typeof item === 'string' && item.length > (spec.max ?? 2048)
+            || typeof item === 'number' && (!Number.isFinite(item) || spec.integer && !Number.isInteger(item)
+              || item < (spec.min ?? -1e7) || item > (spec.max ?? 1e7))) throw Error('ASSISTANT_SETTINGS_INVALID')
+        } else if (!['endpoint', 'model', 'voice', 'resourceId', 'ttsVoice'].includes(key)
+          || typeof item !== 'string' || item.length > 2048) throw Error('ASSISTANT_SETTINGS_INVALID')
+        fields[key] = item
+      }
+      copied[id] = fields
+    }
+    result[kind] = copied
+  }
+  return result
+}
 export const ResidentSettingsSchema = z.object({
   ...speechFields,
   persona: z.string().default(defaultPersona), agentPreset: z.string().default(''), cwd: z.string().default(''),
   manageAllWorkspaces: z.boolean().default(true), electronExecutable: z.string().default(''),
   asrMode: z.string().default('native'), asrProviderId: z.string().default(''), asrResourceId: z.string().default(''),
-  ttsProvider: z.string().default('compatible'), ttsResourceId: z.string().default(''), speechProfiles: z.dict(z.dict(z.dict(z.union([z.string(), z.number(), z.boolean()])))).default({}),
+  ttsProvider: z.string().default('compatible'), ttsResourceId: z.string().default(''), speechProfiles: z.transform(z.any(), parseSpeechProfiles, true).default({}),
   asrEndpoint: z.string().default('https://api.openai.com/v1/audio/transcriptions'), asrModel: z.string().default(''),
   ttsEndpoint: z.string().default('https://api.openai.com/v1/audio/speech'), ttsModel: z.string().default(''), ttsVoice: z.string().default(''),
   inputDeviceId: z.string().default(''), outputDeviceId: z.string().default(''),
