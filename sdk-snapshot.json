@@ -1,7 +1,7 @@
 {
   "sdk": {
     "name": "@rabilink/assistant-runtime",
-    "version": "0.12.1",
+    "version": "0.13.0",
     "files": {
       "src/aiui-runtime.d.ts": "a8dec172d2a8582a87c2566b98b5d126c2230d56de4369098ece1e441ba91584",
       "src/aiui-runtime.js": "5f50914ee47534626b414680971089d3283fe645105b2e9f705582897bf111e0",
@@ -23,17 +23,17 @@
       "src/turn-runtime.js": "458f512c3e905c2b3a7085d0e7b5d66c61cf38ace69100a523979bb22f312e27",
       "src/voice-interaction.d.ts": "ee5e6f2ca67f763d1bd2c441bacac7730079535bcd17b5689e92b13d71e345d7",
       "src/voice-interaction.js": "1654c9fa52a1b3f85573c652a0643eeb2c6bb7b0c895f4eb042a47cffe81cea0",
-      "ui/assistant-panel-styles.js": "248b4df09d6bf70b8399fa9d1b2d3284ae7c2e7420631d0d3021ebe14aeeadc1",
+      "ui/assistant-panel-styles.js": "0ff9e5cdb6102ab9d9662dbcaa723a89b76c1328cf801b624d0150049633222e",
       "ui/assistant-panel.d.ts": "c7d791bc40d6a0806ad71d2899c37c7a17b2642f10742bdce51504c947ac5da1",
-      "ui/assistant-panel.js": "f5234d039d6794b5da3b5009df9e3c7140e8a3c972dde78eb1fe5cae4430a00d"
+      "ui/assistant-panel.js": "299017a733a2d6c43fe65071b25fef8cf20a1f334d5495b466a80385143c976a"
     }
   },
   "desktop": {
     "name": "@rabilink/desktop-voice-service",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "files": {
-      "src/assistant-host.mjs": "ad58193d5411fae3e6e010c93eae128b8539172b6642697791ae1abb3e54abf2",
-      "src/assistant-settings.mjs": "9104921799b8d1b7ce6844b9e742af017cd18cf40feb3b4e2e4c364b37fb6034",
+      "src/assistant-host.mjs": "ac1d63ef8675b9a0230d9f77033c6736f594a34a4fcb7148c1669fac2290704c",
+      "src/assistant-settings.mjs": "d8cdb9dd4e3a6cb9317a6126821235e19676422101493110475a9e3eca8c5898",
       "src/chat-model.mjs": "a4490beee64532db0a55e26dd712caedf8823bd1f7f7ba3bbb0c7f47c312d786",
       "src/desktop-asr.mjs": "af94b396d8e6ac00d483668ea7d640843748640c375ad5ec9ae1c619e99b1a45",
       "src/device-executable.mjs": "f4fddc04a159097f189d359ceedbaa81caab55d079de089bcbedf291780ddea0",

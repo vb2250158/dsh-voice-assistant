@@ -23,6 +23,7 @@ test('model selection applies the provider and model to the native assistant ses
   const after = await host.command({ action: 'select-model', provider: 'provider-a', model: 'model-x' })
   assert.deepEqual(after.selectedModel, { provider: 'provider-a', model: 'model-x' })
   await assert.rejects(host.command({ action: 'select-model', provider: '', model: 'model-x' }), /ASSISTANT_MODEL_INVALID/)
+  await assert.rejects(host.command({ action: 'settings', patches: [{ agentPreset: 'another' }] }), /ASSISTANT_PRESET_SESSION_LOCKED/)
   ctx.sessionController.selectModel = async () => { throw Error('MODEL_UNAVAILABLE') }
   await assert.rejects(host.command({ action: 'select-model', provider: 'provider-b', model: 'model-y' }), /MODEL_UNAVAILABLE/)
   assert.deepEqual((await host.state()).selectedModel, { provider: 'provider-a', model: 'model-x' })

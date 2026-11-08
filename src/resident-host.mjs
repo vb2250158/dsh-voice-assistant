@@ -51,9 +51,12 @@ export function createResidentHost({ ctx, binding, installTools, ...options }) {
   }
   return { ...host, state: async () => withCapabilities(await host.state()),
     async command(request) {
-      if (request.action === 'settings' && request.patch?.agentPreset !== undefined) {
-        const state = await host.state()
-        if (state.sessionId && request.patch.agentPreset !== state.settings.agentPreset) throw Error('ASSISTANT_PRESET_SESSION_LOCKED')
+      if (request.action === 'settings') {
+        const patches = Array.isArray(request.patches) ? request.patches : [request.patch]
+        if (patches.some(patch => patch && Object.hasOwn(patch, 'agentPreset'))) {
+          const state = await host.state()
+          if (state.sessionId && patches.some(patch => patch && Object.hasOwn(patch, 'agentPreset') && patch.agentPreset !== state.settings.agentPreset)) throw Error('ASSISTANT_PRESET_SESSION_LOCKED')
+        }
       }
       if (request.action === 'select-model') {
         if (typeof request.provider !== 'string' || typeof request.model !== 'string' || !request.provider || !request.model) throw Error('ASSISTANT_MODEL_INVALID')

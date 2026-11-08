@@ -57,7 +57,7 @@ export async function apply(ctx, config) {
   }
   const settings = () => { try { return store.read() } catch (error) { diagnose('settings-read', error); throw error } }
   const saveSettings = store.save
-  host = createResidentHost({ ctx, settings, saveSettings, diagnose, binding: domain.global, deviceFactory: openDesktopDevice, speech: optionalNativeSpeech(ctx), pet: optionalPetPresenter(ctx),
+  host = createResidentHost({ ctx, settings, saveSettings, previewSettings: store.preview, saveSettingsBatch: store.saveBatch, diagnose, binding: domain.global, deviceFactory: openDesktopDevice, speech: optionalNativeSpeech(ctx), pet: optionalPetPresenter(ctx),
     credentials: createSpeechCredentials(ctx.credentials, credentialKey),
     installTools: agent => installNativeManagement({ ctx, agent, settings, ledger: domain.table('requests'), defineTool }),
     openSettings: () => { if (!settingsUrl) throw Error('ASSISTANT_SETTINGS_URL_UNAVAILABLE'); return host.openSettings(settingsUrl) },
