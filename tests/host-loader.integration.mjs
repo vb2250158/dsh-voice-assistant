@@ -56,7 +56,7 @@ test('real Loader activates complete built apply, preserves live Config and pers
     writeFileSync(join(bundle, 'cordis.patch.yml'), JSON.stringify([{ insert: [
       { id: 'config-editor', name: 'cordis:editor' }, { id: 'settings', name: 'cordis:settings' },
       { id: 'storage', name: 'cordis:storage' }, { id: 'ports', name: 'cordis:ports' },
-      { id: namespace, name: 'cordis:assistant', config: { persona: 'persisted fixture persona', captionFontSize: 29 } },
+      { id: namespace, name: 'cordis:assistant', config: { persona: 'persisted fixture persona', captionFontSize: 29, asrMode: 'compatible', asrModel: 'gpt-4o-mini-transcribe', ttsModel: 'gpt-4o-mini-tts', ttsVoice: 'alloy' } },
     ] }]))
     writeFileSync(join(dir, 'cordis.yml'), '[]\n')
     const context = { name: 'test', startedBundles: ['test-bundle'], dir, patchPath: join(dir, 'cordis.patch.yml'), installAnchor: join(home, 'package.json'), cwd: home, home, overlays: [], telemetryDisabledEnv: undefined }
@@ -100,6 +100,8 @@ test('real Loader activates complete built apply, preserves live Config and pers
     assert.equal(ctx.settings.describe().find(row => row.ns === namespace).autoGenerate, false)
     await request({ action: 'settings', patch: { persona: 'updated fixture persona', captionFontSize: 31 } })
     assert.equal((await request()).settings.persona, 'updated fixture persona')
+    const asrChanged = await request({ action: 'settings', patch: { asrMode: 'volcengine' } })
+    assert.equal(asrChanged.settings.asrMode, 'volcengine')
     assert.ok(readFileSync(context.patchPath, 'utf8').includes('updated fixture persona'))
     assert.ok(ctx.settings.describe().some(row => row.ns === namespace))
     await entry.update({ disabled: true }); await ctx.loader.await()

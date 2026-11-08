@@ -34,12 +34,21 @@ export function createResidentHost({ ctx, binding, installTools, ...options }) {
     catalogAt = Date.now()
     return catalogCache
   }
-  const withCapabilities = async state => ({ ...state, selectedModel: native?.getModel() ?? selectedModel ?? null,
-    capabilities: { host: 'dsh', speechProviders, hostModels: await modelCatalog(),
-      ...(catalogError ? { hostModelsError: catalogError } : {}),
-      ...(presets ? { presets: (await presets.service.list()).filter(item => !item.broken).map(item => ({ id: item.id, label: item.name || item.id })) } : {}),
-    },
-  })
+  const withCapabilities = async state => {
+    let current, availablePresets
+    try { current = native?.getModel() ?? selectedModel ?? null }
+    catch (error) { options.diagnose?.('model-read', error); throw error }
+    if (presets) {
+      try { availablePresets = (await presets.service.list()).filter(item => !item.broken).map(item => ({ id: item.id, label: item.name || item.id })) }
+      catch (error) { options.diagnose?.('preset-list', error); throw error }
+    }
+    return { ...state, selectedModel: current,
+      capabilities: { host: 'dsh', speechProviders, hostModels: await modelCatalog(),
+        ...(catalogError ? { hostModelsError: catalogError } : {}),
+        ...(availablePresets ? { presets: availablePresets } : {}),
+      },
+    }
+  }
   return { ...host, state: async () => withCapabilities(await host.state()),
     async command(request) {
       if (request.action === 'settings' && request.patch?.agentPreset !== undefined) {

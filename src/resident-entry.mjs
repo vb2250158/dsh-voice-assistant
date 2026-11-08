@@ -49,8 +49,15 @@ export async function apply(ctx, config) {
   })
   const namespace = ctx.fiber.entry?.options.id ?? name
   store = createSettingsStore(ctx.settings, namespace, () => config.get())
-  const settings = store.read, saveSettings = store.save
-  host = createResidentHost({ ctx, settings, saveSettings, binding: domain.global, deviceFactory: openDesktopDevice, speech: optionalNativeSpeech(ctx), pet: optionalPetPresenter(ctx),
+  const diagnose = (stage, error) => {
+    const name = /^[A-Za-z][A-Za-z0-9]*Error$/.test(error?.name) ? error.name : 'Error'
+    const frames = String(error?.stack || '').split('\n').slice(1, 5)
+      .map(line => line.match(/\bat\s+([A-Za-z0-9_.$<>]+)(?:\s|\()/)?.[1]).filter(Boolean)
+    ctx.logger.warn('voice assistant %s failed (%s): %s', stage, name, frames.join(' > '))
+  }
+  const settings = () => { try { return store.read() } catch (error) { diagnose('settings-read', error); throw error } }
+  const saveSettings = store.save
+  host = createResidentHost({ ctx, settings, saveSettings, diagnose, binding: domain.global, deviceFactory: openDesktopDevice, speech: optionalNativeSpeech(ctx), pet: optionalPetPresenter(ctx),
     credentials: createSpeechCredentials(ctx.credentials, credentialKey),
     installTools: agent => installNativeManagement({ ctx, agent, settings, ledger: domain.table('requests'), defineTool }),
     openSettings: () => { if (!settingsUrl) throw Error('ASSISTANT_SETTINGS_URL_UNAVAILABLE'); return host.openSettings(settingsUrl) },
@@ -60,8 +67,15 @@ export async function apply(ctx, config) {
       if (disposed) return json({ error: 'ASSISTANT_CLOSED' }, 503)
       const url = new URL(request.url)
       if (['localhost','127.0.0.1','[::1]'].includes(url.hostname) && ['http:','https:'].includes(url.protocol)) settingsUrl = url.origin + '/?voice-assistant=1'
-      try { return json(request.method === 'GET' ? await host.state() : await host.command(await readCommand(request))) }
-      catch (error) { return json({ error: /^[A-Z][A-Z0-9_]{1,100}$/.test(error?.message) ? error.message : 'ASSISTANT_OPERATION_FAILED' }, 400) }
+      let stage = 'request'
+      try {
+        const result = request.method === 'GET' ? await host.state() : await host.command(await readCommand(request))
+        stage = 'response-serialization'
+        return json(result)
+      } catch (error) {
+        diagnose(stage, error)
+        return json({ error: /^[A-Z][A-Z0-9_]{1,100}$/.test(error?.message) ? error.message : 'ASSISTANT_OPERATION_FAILED' }, 400)
+      }
     },
   })
 
