@@ -1,8 +1,9 @@
 import { randomUUID } from 'node:crypto'
 /** One durable native Session; audio and presenter lifetimes never cancel it. */
-export function createNativeSession(ctx, { settings, binding, installTools = () => () => {}, onError = () => {} }) {
+export function createNativeSession(ctx, { settings, binding, installTools = () => () => {}, onError = () => {}, speechInstruction = '', speechPolicy = () => ({ enabled: false }) }) {
   let id = binding.get().sessionId || undefined, opening, closed = false, attached
-  let persona = settings().persona, turn, attempt, snapshot = { revision: 0 }
+  let persona = settings().persona, turn, attempt, pendingPolicy, snapshot = { revision: 0 }
+  const policies = new Map()
   const listeners = new Set(), disposers = [], scoped = []
   const report = error => { try { onError(error) } catch {} }
   const publish = change => {
@@ -34,23 +35,27 @@ export function createNativeSession(ctx, { settings, binding, installTools = () 
       // its registration or replace native tools/system policy.
       scoped.push(found.agent.ctx.on('system-prompt/assemble', async (_assembly, _context, next) => {
         const value = await next()
-        const section = { name: 'voice-assistant:persona', text: persona, interpolate: false }
+        const section = { name: 'voice-assistant:persona', text: persona + speechInstruction, interpolate: false }
         let replaced = false
         const sections = value.sections.filter(item => item.name !== 'deployment:persona-suffix').map(item => {
           if (item.name !== 'deployment:persona-prefix') return item
           replaced = true; return section
         })
         if (!replaced) sections.unshift(section)
-        return { ...value, sections }
+        const policy = speechPolicy(settings())
+        pendingPolicy = policy
+        const contexts = value.contexts.filter(item => item.name !== 'voice-assistant:speech-capabilities')
+        if (policy.enabled) contexts.push({ name: 'voice-assistant:speech-capabilities', text: JSON.stringify({ speechCapabilities: policy }) })
+        return { ...value, sections, contexts }
       }))
       scoped.push(found.agent.ctx.on('agent/request-context', async (payload, next) => {
-        if (payload.agent.id === id && payload.turn !== turn) { turn = payload.turn; persona = settings().persona }
+        if (payload.agent.id === id && payload.turn !== turn) { turn = payload.turn; persona = settings().persona; policies.set(turn, pendingPolicy ?? speechPolicy(settings())); if (policies.size > 16) policies.delete(policies.keys().next().value) }
         return next()
       }))
       scoped.push(installTools(found.agent, () => id))
       const assembly = await found.agent.ctx.systemPrompt.assemble({ scope: found.agent })
       if (closed) throw Error('ASSISTANT_CLOSED')
-      if (!assembly.sections.some(section => section.name === 'voice-assistant:persona' && section.text === persona)) throw Error('ASSISTANT_PRESET_COMPLETE_PROMPT')
+      if (!assembly.sections.some(section => section.name === 'voice-assistant:persona' && section.text === persona + speechInstruction)) throw Error('ASSISTANT_PRESET_COMPLETE_PROMPT')
       attached = found.agent
     } catch (error) { for (const off of scoped.splice(0).reverse()) { try { off() } catch (error) { report(error) } }; throw error }
   }
@@ -78,7 +83,7 @@ export function createNativeSession(ctx, { settings, binding, installTools = () 
     return opening
   }
   return {
-    open, getSessionId: () => id, getModel: () => attached?.model.current(),
+    open, getSessionId: () => id, getModel: () => attached?.model.current(), getSpeechPolicy: turn => policies.get(turn) ?? speechPolicy(settings()),
     eventSource: { getSnapshot: () => snapshot, subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn) } },
     async submit(text, requestId) {
       if (typeof text !== 'string' || !text.trim() || text.length > 16000) throw Error('ASSISTANT_INPUT_INVALID')

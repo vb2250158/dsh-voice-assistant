@@ -1,7 +1,7 @@
 import { conversationMessages } from './conversation-messages.mjs'
 
 /** Resolve an existing Session before retaining its Chat projection. */
-export function subscribeConversation(ctx, sessionId, onMessages, onError) {
+export function subscribeConversation(ctx, sessionId, onMessages, onError, createDecoder) {
   let closed = false, reference, unsubscribe
   const release = () => { unsubscribe?.(); unsubscribe = undefined; reference?.release(); reference = undefined }
   void (async () => {
@@ -13,7 +13,7 @@ export function subscribeConversation(ctx, sessionId, onMessages, onError) {
       const binding = await reference.ready
       if (closed) return
       const source = ctx.uiConversation.binding(binding).target('chat')
-      const update = () => { if (!closed) onMessages(conversationMessages(source.getSnapshot(), 100)) }
+      const update = () => { if (!closed) onMessages(conversationMessages(source.getSnapshot(), 100, createDecoder)) }
       unsubscribe = source.subscribe(update)
       update()
     } catch (error) {

@@ -64,3 +64,14 @@ test('text presentation continues when the voice owner is stopped', () => {
   }
   assert.deepEqual(frames,[{responseId:'a',text:'hello'},{responseId:'a',text:'hello world'}]);stop()
 })
+test('applies decoded expression before speech and exposes only decoded prose',()=>{
+  let snapshot={revision:0},notify
+  const calls=[],frames=[]
+  const source={getSnapshot:()=>snapshot,subscribe(fn){notify=fn;return()=>{}}}
+  const voice={beginResponse:()=>({setSpeech:value=>calls.push(['speech',value]),append:value=>calls.push(['append',value]),finish:()=>calls.push(['finish'])})}
+  const decoder=()=>({push:()=>({expression:{rate:1.1},delta:'正文'}),finish:()=>({delta:''})})
+  const stop=observeSessionOutput({eventSource:source,voice,createDecoder:decoder,onText:value=>frames.push(value),onError:error=>{throw error}})
+  snapshot={revision:1,change:{kind:'append',entries:[{type:'transient',event:{type:'assistant/live-chunk',data:{attemptId:'a',turn:1,chunk:{type:'text-delta',text:'<voice rate="1.1"/>正文'}}}}]}};notify()
+  assert.deepEqual(calls,[['speech',{expression:{rate:1.1}}],['append','正文']])
+  assert.equal(frames[0].text,'正文');stop()
+})

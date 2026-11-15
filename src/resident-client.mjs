@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Button, Input, Modal, IconMicrophoneOutlineRegular } from '@deepseek-ai/dsh-client-ui-primitives'
 import { createAssistantPanel } from '@rabilink/assistant-runtime/ui'
+import { createSpeechExpressionDecoder } from '@rabilink/assistant-runtime/voice'
 import { subscribeConversation } from './subscribe-conversation.mjs'
 const namespace='dsh-voice-assistant'
 const deviceErrors = {
@@ -21,7 +22,7 @@ export function apply(ctx) {
     return result
   }
   const adapter={read:()=>request(),command:request,subscribeConversation:(sessionId,onMessages,onError)=>
-    subscribeConversation(ctx,sessionId,onMessages,onError)}
+    subscribeConversation(ctx,sessionId,onMessages,onError,createSpeechExpressionDecoder)}
   const Panel=createAssistantPanel(React,{Button,Input,Modal})
   ctx.provide('dshAssistant',{open(){ctx.layout.selectPanel(namespace)}})
   ctx.slots.inject('main',()=>ctx.slots.register({name:'main',key:namespace,locale:namespace},()=>React.createElement(Panel,{adapter})))

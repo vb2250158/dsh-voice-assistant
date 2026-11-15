@@ -1,5 +1,5 @@
 /** Render only public Chat nodes, in the order supplied by the native projection. */
-export function conversationMessages(snapshot, limit) {
+export function conversationMessages(snapshot, limit, createDecoder) {
   if (!snapshot) return []
   const seen = new Set(), messages = []
   for (const key of snapshot.order) {
@@ -11,6 +11,7 @@ export function conversationMessages(snapshot, limit) {
     if (node.kind === 'assistant-step') {
       role = 'assistant'
       text = node.data.blocks.filter(block => block.kind === 'text').map(block => block.text).join('')
+      if (createDecoder) { const decoder = createDecoder(); decoder.push(text); text = decoder.finish().text }
     } else if (node.kind === 'turn-error') {
       role = 'assistant'; notice = true
       const code = node.data.code

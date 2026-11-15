@@ -14,6 +14,19 @@ function fixture() {
   return { store: createSettingsStore(service, 'voice', () => config), config: () => config, writes: () => writes }
 }
 
+test('shared OpenAI settings and dynamic expression survive model changes', async () => {
+  const f = fixture()
+  await f.store.saveBatch([{ ttsModel:'gpt-4o-mini-tts', ttsVoice:'alloy', ttsSpeed:1.2, ttsDynamicExpression:true },
+    { ttsModel:'tts-1', ttsVoice:'nova', ttsSpeed:.8 }, { ttsModel:'gpt-4o-mini-tts' }])
+  const value = f.store.read()
+  assert.equal(value.ttsVoice, 'alloy')
+  assert.equal(value.ttsSpeed, 1.2)
+  assert.equal(value.ttsDynamicExpression, true)
+  await f.store.save({ asrLanguage:'zh', asrPrompt:'专有名词', asrTemperature:.2, asrWordTimestamps:true })
+  assert.equal(f.store.read().asrLanguage,'zh')
+  await f.store.close()
+})
+
 test('preview applies provider patches without mutating or writing stored settings', async () => {
   const f = fixture(), original = f.config(), snapshot = structuredClone(original)
   const patches = [{ asrMode: 'volcengine' }, { asrModel: 'bigmodel-1.0', asrEnableEmotionDetection: true }]

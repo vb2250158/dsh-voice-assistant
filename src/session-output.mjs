@@ -1,12 +1,23 @@
 /** Project new native Session text into shared voice response tokens. */
-export function observeSessionOutput({ eventSource, voice, onError, onText = () => {} }) {
+export function observeSessionOutput({ eventSource, voice, onError, onText = () => {}, createDecoder, speechPolicy = () => ({ enabled: false }) }) {
   let closed = false
   let revision = eventSource.getSnapshot().revision
   const responses = new Map()
   let foreground
   const finish = (key, speak = true) => {
     const response = responses.get(key)
-    if (response) { response.token.finish({ speak }); responses.delete(key) }
+    if (response) {
+      if (response.decoder) {
+        const result = response.decoder.finish()
+        if (result.expression) response.token.setSpeech?.({ expression: result.expression })
+        if (result.delta) {
+          response.token.append(result.delta)
+          response.text = (response.text + result.delta).slice(-16000)
+          if (foreground === key) onText({ responseId: key, text: response.text })
+        }
+      }
+      response.token.finish({ speak }); responses.delete(key)
+    }
   }
   const update = () => {
     if (closed) return
@@ -37,10 +48,12 @@ export function observeSessionOutput({ eventSource, voice, onError, onText = () 
       const { attemptId, turn, step, chunk } = entry.event.data
       if (chunk.type !== 'text-delta' || typeof chunk.text !== 'string' || !chunk.text) continue
       const key = String(attemptId)
-      if (!responses.has(key)) { foreground = key; responses.set(key, { token:voice.beginResponse({ id: key }) ?? { append() {}, finish() {} }, turn, step, confirmed:false, text: '' }) }
+      if (!responses.has(key)) { foreground = key; responses.set(key, { token:voice.beginResponse({ id: key }) ?? { append() {}, setSpeech() {}, finish() {} }, decoder: createDecoder?.(speechPolicy(turn)), turn, step, confirmed:false, text: '' }) }
       const response = responses.get(key)
-      response.token.append(chunk.text)
-      response.text = (response.text + chunk.text).slice(-16000)
+      const decoded = response.decoder?.push(chunk.text) ?? { delta: chunk.text }
+      if (decoded.expression) response.token.setSpeech?.({ expression: decoded.expression })
+      if (decoded.delta) response.token.append(decoded.delta)
+      response.text = (response.text + decoded.delta).slice(-16000)
       if (foreground === key) onText({ responseId: key, text: response.text })
     }
   }

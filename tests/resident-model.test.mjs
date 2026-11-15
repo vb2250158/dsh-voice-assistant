@@ -5,8 +5,12 @@ import { createResidentHost } from './generated/resident-host.js'
 test('model selection applies the provider and model to the native assistant session', async () => {
   const config = { persona: 'test persona', outputEnabled: true, asrMode: 'native', ttsProvider: 'compatible', ttsEndpoint: 'https://api.example/tts' }
   let binding = {}, selected, created
+  const hooks = new Map()
   const agent = { id: 'session', model: { current: () => selected }, ctx: {
-    on: () => () => {}, systemPrompt: { assemble: async () => ({ sections: [{ name: 'voice-assistant:persona', text: config.persona }] }) },
+    on: (name, fn) => { hooks.set(name, fn); return () => hooks.delete(name) }, systemPrompt: { assemble: async () => {
+      const initial = { sections: [], contexts: [] }
+      return hooks.get('system-prompt/assemble')(initial, {}, async () => initial)
+    } },
   } }
   const ctx = { on: () => () => {}, inject: () => {}, sessionController: {
     async modelCatalog() { return { groups: [{ id: 'provider-a', name: 'Provider A', models: [{ id: 'model-x', name: 'Model X' }] }] } },

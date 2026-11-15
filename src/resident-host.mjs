@@ -1,6 +1,8 @@
 import { createResidentHost as createSharedResidentHost } from '@rabilink/desktop-voice-service/host'
 import { createSpeechProviders } from '@rabilink/desktop-voice-service/speech-providers'
 import { speechProviders } from '@rabilink/desktop-voice-service/provider-profiles'
+import { speechExpressionPolicy } from '@rabilink/desktop-voice-service/expression'
+import { speechExpressionInstruction, createSpeechExpressionDecoder } from '@rabilink/assistant-runtime/voice'
 import { createNativeSession } from './native-session.mjs'
 import { observeSessionOutput } from './session-output.mjs'
 
@@ -14,8 +16,9 @@ export function createResidentHost({ ctx, binding, installTools, ...options }) {
   })
   const host = createSharedResidentHost({
     ...options,
-    conversation: ({ onError }) => (native = createNativeSession(ctx, { settings: options.settings, binding, installTools, onError })),
-    observeOutput: ({ conversation, ...args }) => observeSessionOutput({ eventSource: conversation.eventSource, ...args }),
+    supportsDynamicExpression: true,
+    conversation: ({ onError }) => (native = createNativeSession(ctx, { settings: options.settings, binding, installTools, onError, speechPolicy: speechExpressionPolicy, speechInstruction: speechExpressionInstruction({ enabled: true }) })),
+    observeOutput: ({ conversation, ...args }) => observeSessionOutput({ eventSource: conversation.eventSource, createDecoder: createSpeechExpressionDecoder, speechPolicy: conversation.getSpeechPolicy, ...args }),
     createProviders: config => createSpeechProviders({ config, credentials: options.credentials }),
   })
   let catalogCache, catalogAt = 0, selectedModel, catalogError
