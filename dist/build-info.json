@@ -54,13 +54,14 @@
         "src/node-device.mjs": "59c6e3c989da1677520380b480db36a614a7e9cbabd1c77c69e4a85e965ac76b",
         "src/openai-speech-catalog.json": "7f0d9ff8e056c891872e0bfb54b3bcefc6a79e238b014d1e7994ad9e05270171",
         "src/openai-tts.mjs": "6ab828dd814c403bdbcc706d2169f0c781aa2b3242f826d2953bae580bd8a832",
+        "src/pcm-buffer.mjs": "08b3955fc276f55e39c135c324b0b62f8b5389b2842ec07a62ef878002cd3c32",
         "src/playback-cues.mjs": "074ee1e9ef22ad0d275e69697eb97d737c0bd6c281413911dc80337763b3ca03",
         "src/presenter-settings.mjs": "8ff30e1d5d29cff452837d8672bc0379e48783ea7bd5a12354f39f500a900bff",
         "src/provider-profiles.mjs": "ea35b5f771390c76a5d9849c3a322381d6307780a6575cee7d97c2c2bcc6884d",
         "src/providers.d.ts": "0b28075f48c925c34f0ec974774f0235421c4e318f2c85ba9844ebdbcc9f740d",
         "src/providers.mjs": "0a57def9307ed31fb9d66a367a8f6b08c0166f9d26f5ac34323b053e80aa2dea",
         "src/recognition-context.mjs": "085b225b8038e01de145b3ead0df660812c551bfaa7221424d9bf7e3c84b145a",
-        "src/services.mjs": "59f542a27dbb334db5811a6918d3d6fe9eb08dc8ea0adb0daf36574e86b2a92d",
+        "src/services.mjs": "d985aa207f90a908064754ff9089ac9d3318ca858a69eba1306f4454c9bfb430",
         "src/speech-catalog.mjs": "c920634326d8c6a9ace51ecdb8583814c7591a1d5d7ef70ce2e2cd5ea7b10b85",
         "src/speech-details.mjs": "47cd04a831093355ff89636651539c4a5ced29833ab864842e20272903744d50",
         "src/speech-providers.mjs": "146f86d687a1b5f3380af54a88160df2910625439e76cab8ed2a28d27511ce46",
@@ -73,7 +74,7 @@
         "src/volcano-tts.mjs": "b64757b6e71972e01a010a441f1706c8efd5e9c4c532195e528f3dec6530fc19",
         "src/volcano-voices.mjs": "ddc96fcb7389f7911399971db6476980834b0e5b2f62e10346fc87c5d3aa7302",
         "src/windows-job.mjs": "2ee30fea845a29de0cebdb280330d52fb4b68c606aa310ccc724ee3522d63aad",
-        "src/windows-secrets.mjs": "94102c1bee7ac706ac0383ca9131e5a82c3a4f2f1cca57fbed7d8eccb2f411b8",
+        "src/windows-secrets.mjs": "12fb7d801747b54a328a53934bd43a8c7240d21d5c7ac8a7636e3f8377cd0add",
         "src/workbuddy-cli.mjs": "52f34609500601562293bec9bf090103d821654f6f8cee4c79556742674641f6",
         "runtime/audio.html": "72de16bd298f5b853bb6eac2841d554fce1930ac2aed025f31ab6d5afdc6192e",
         "runtime/caption.css": "19789eee5f65531f86fbcd7c68aecd050e0c072d771f2ffc7612c83f63fdfcbb",
@@ -91,6 +92,6 @@
       }
     }
   },
-  "hostSha256": "e161bb043f1f26d669e52d69ff99e30f4819e1556d28f878b23fb206289b6830",
+  "hostSha256": "1f77bf096f7f0062b5a8c1799411ff57b4b49bc5ba12227bd7e3ff626c9c48ae",
   "clientSha256": "8bd51dd003d5fe6c32471e963f40dd8e30c8c1ddc159f3e5640940855ca1dade"
 }
