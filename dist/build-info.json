@@ -5,8 +5,8 @@
       "name": "@rabilink/assistant-runtime",
       "version": "0.13.1",
       "files": {
-        "src/aiui-runtime.d.ts": "a8dec172d2a8582a87c2566b98b5d126c2230d56de4369098ece1e441ba91584",
-        "src/aiui-runtime.js": "5f50914ee47534626b414680971089d3283fe645105b2e9f705582897bf111e0",
+        "src/aiui-runtime.d.ts": "54489ae5dd8fad57d41757e7b238b676ee3cef112bd25719645e8a6ad586367c",
+        "src/aiui-runtime.js": "68b05ac4c3eaf091c535f273fad77767e759fc31c9671159cddce97655b5a438",
         "src/assert-current.js": "1b30c966d8fc237835504010872615f8b4b77428fa726513647d948ba79ef3f7",
         "src/assistant-session.d.ts": "0e0a5f4d43f569383e934bf4fc21a395dc23648a5422c6d5fc9b1bdc2ce0f4c6",
         "src/assistant-session.js": "6b142c325e45799d00dfe0a316ff254c98867f07e020537135853b0cc891db82",
@@ -25,8 +25,8 @@
         "src/speech-playback.js": "aa0df1e0e2f41dc1a3058e0ceb2da99e75df67b17f20ecaa1a033b50615df7ec",
         "src/turn-runtime.d.ts": "6ffc29adf2288abeef0ec4042a6dd5c171788962f45326728cab71bf354e2ce6",
         "src/turn-runtime.js": "054234a8c0540457b556fff49f26efc2465027e4387d2e1534e473d7e49c44a9",
-        "src/voice-interaction.d.ts": "0d3a1ebecaace8532f48cfee7cb10e37b0f86d3eee322eb49809dddc948ddd6c",
-        "src/voice-interaction.js": "5f4ab7e99ed8de160fc2424f36ac74ae2a5f25a4f67fe855a65293db78b06b03",
+        "src/voice-interaction.d.ts": "30fdac457a15057a0b0f1b8877e4f9af21f9573951c5b98eeb3368d87458751c",
+        "src/voice-interaction.js": "7c541fadd4e7cc0fb4aad7536dc8bac0622108e970977968cefe577cfa35dea7",
         "ui/assistant-panel-styles.js": "2676d8ac310cb333b9d8c328c6fc14cd272c4a204cb777cf79fae38890b1fe0c",
         "ui/assistant-panel.d.ts": "65a814e2ae9928ae3d440c481a7c6849a0bbf0fda9cf150f0992a17e2975354c",
         "ui/assistant-panel.js": "d5bf0b8a319af2e49b64f63dd0c3f4c46f1f1fa0a65479e7a513087f07b0dd4f",
@@ -39,7 +39,7 @@
       "name": "@rabilink/desktop-voice-service",
       "version": "0.3.1",
       "files": {
-        "src/assistant-host.mjs": "93df99a76a4e952a0e0edb5c677c09d6dabe28eaabef9a096ee939175c69cb15",
+        "src/assistant-host.mjs": "2d2c0b1f7aa08bcf991e0deabdabb94ba33f06a9b0021320aa784f947d575a86",
         "src/assistant-settings.mjs": "de52bfe1320d3ed4a497a50fa21033725d1aa6a418dae9ddfd65b7f190ddce8d",
         "src/chat-model.mjs": "0d86acf28d931cef99cc614765304fc22a3e7e00a2d97ddca7153082ac4a1d03",
         "src/desktop-asr.mjs": "af94b396d8e6ac00d483668ea7d640843748640c375ad5ec9ae1c619e99b1a45",
@@ -56,13 +56,13 @@
         "src/providers.d.ts": "0b28075f48c925c34f0ec974774f0235421c4e318f2c85ba9844ebdbcc9f740d",
         "src/providers.mjs": "0a57def9307ed31fb9d66a367a8f6b08c0166f9d26f5ac34323b053e80aa2dea",
         "src/services.mjs": "c6a018301de9cf9865f8350338010abc0c7100e993bdcf2c84c176f1ac9d0373",
-        "src/speech-catalog.mjs": "e0a1182670cb6c4d539fcac0da6232696bf41cb594839e85e4d4b25f87916a71",
+        "src/speech-catalog.mjs": "db80a3e61d1fe7ab2dd598032e018ecca184a1650cd6b24f3a20965a7da1525d",
         "src/speech-details.mjs": "ff4803b2ce9e831d1a196d647decf7fbd687b548364fb9166563b07f2f7b6f51",
         "src/speech-providers.mjs": "84d00c9a25e7a5c51399e3ba5309abf2b77c82ae4567653e8aaafd198dcf64b5",
         "src/speech-sample.mjs": "197381b88d9c35f1b7074c22d6ef13ab6fe9ab07a602f92adb9d12b64d86a607",
         "src/speech-socket.mjs": "1fb673af1a7cbb9e695e5423c782901ff4c6ce576b97a71b51658b01e286a686",
         "src/tts-expression.mjs": "a95f79a7aea3e04e69ae2953f12f955d971b6199457305ee9cafccffc5aa80cb",
-        "src/volcano-asr.mjs": "e52d706572b9612ee1d973357bba74592999ae0794d7c63bf343747c1a8312f1",
+        "src/volcano-asr.mjs": "28da7eb32c57cd25ac8f85cd54b4f7bbf91ae3e40472a219eb28ad59d7a9e707",
         "src/volcano-codec.mjs": "589f368daaeddfd0aa97830c9e4e461bc8195463e744f2ca000f923767de9e3e",
         "src/volcano-tts.mjs": "34cb592416876cc634fad6270d1d32473a2bd77b8535f6f4a89af63bcce38a62",
         "src/volcano-voices.mjs": "ddc96fcb7389f7911399971db6476980834b0e5b2f62e10346fc87c5d3aa7302",
@@ -85,6 +85,6 @@
       }
     }
   },
-  "hostSha256": "80e19754f52b78d82ed820716125226505dbf41dd0aef11d56faaf325e1e87c5",
+  "hostSha256": "f66df19a1c214cce0a0b79479c9d5ab493b2ac4fb4f7758bb65cf04914b21f0e",
   "clientSha256": "a753f4760b2cfb8147263d7d08b9aaab77116133511761aafe0adceef50b947e"
 }
