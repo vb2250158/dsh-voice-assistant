@@ -76,6 +76,8 @@ test('speech details stay outside native model input and associate playback with
   assert.equal(session.messageDetails('u:request-1234').result.token,'[hidden]')
   const stream=f.listeners.get('agent/assistant-stream')
   stream({agent:f.agent,frame:{type:'start',attemptId:'reply-1',turn:2,step:3}})
+  assert.equal(session.getSpeechMessageId('reply-1'),'a:2:3')
+  assert.equal(session.getSpeechMessageId('unknown'),undefined)
   session.updateSpeechText('reply-1','你好')
   session.recordSpeechDetails('reply-1',{type:'request',requestId:'one',status:'sent',token:'secret'})
   session.recordSpeechDetails('reply-1',{type:'request',requestId:'one',status:'finished'})

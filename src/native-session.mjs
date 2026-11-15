@@ -126,6 +126,7 @@ export function createNativeSession(ctx, { settings, binding, installTools = () 
       return id
     },
     detailIndex: () => [...details.keys()],
+    getSpeechMessageId: responseId => attempts.get(String(responseId)),
     messageDetails(messageId) {
       const record = details.get(messageId)
       if (!record) throw Error('ASSISTANT_MESSAGE_DETAILS_UNAVAILABLE')

@@ -7,6 +7,11 @@ import { safeSpeechDetails } from '@rabilink/desktop-voice-service/speech-detail
 import { createNativeSession } from './native-session.mjs'
 import { observeSessionOutput } from './session-output.mjs'
 
+/** Align player attempt identities with the native Chat message identities. */
+export function projectSpeechProgress(progress, messageId) {
+  return progress?.map(item => ({ ...item, responseId: messageId(item.responseId) ?? item.responseId }))
+}
+
 /** Bind the shared resident host to the DSH native session and tools. */
 export function createResidentHost({ ctx, binding, installTools, ...options }) {
   let presets, native
@@ -47,7 +52,8 @@ export function createResidentHost({ ctx, binding, installTools, ...options }) {
       catch (error) { options.diagnose?.('preset-list', error); throw error }
     }
     const context = native?.contextState()
-    return { ...state, selectedModel: current, messageDetailsIndex: native?.detailIndex() ?? [], context: context && { ...context, busy: context.busy || state.voice.phase !== 'stopped' },
+    const speechProgress = projectSpeechProgress(state.speechProgress, id => native?.getSpeechMessageId(id))
+    return { ...state, ...(speechProgress ? { speechProgress } : {}), selectedModel: current, messageDetailsIndex: native?.detailIndex() ?? [], context: context && { ...context, busy: context.busy || state.voice.phase !== 'stopped' },
       capabilities: { host: 'dsh', contextManagement: true, speechProviders, hostModels: await modelCatalog(),
         ...(catalogError ? { hostModelsError: catalogError } : {}),
         ...(availablePresets ? { presets: availablePresets } : {}),

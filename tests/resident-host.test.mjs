@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {createResidentHost} from './generated/resident-host.js'
+import {createResidentHost,projectSpeechProgress} from './generated/resident-host.js'
 import {createSettingsStore} from './generated/settings-store.js'
 import {createSpeechCredentials} from './generated/speech-credentials.js'
 function fixture(initial={},makeDevice) {
@@ -11,6 +11,13 @@ function fixture(initial={},makeDevice) {
     deviceFactory:async()=>{opens++;return makeDevice ? makeDevice() : {enumerateDevices:async()=>[],async close(){if(failCleanup)throw Error('PROCESS_CLEANUP_UNCONFIRMED')}}}})
   return {host,store,opens:()=>opens,failCleanup:()=>{failCleanup=true}}
 }
+test('playback progress targets the corresponding native Chat message',()=>{
+  const source=[{responseId:'attempt-1',spokenEnd:3,timingMode:'word',speechStatus:'playing'}]
+  const result=projectSpeechProgress(source,id=>id==='attempt-1'?'a:2:3':undefined)
+  assert.deepEqual(result,[{responseId:'a:2:3',spokenEnd:3,timingMode:'word',speechStatus:'playing'}])
+  assert.equal(source[0].responseId,'attempt-1')
+  assert.equal(projectSpeechProgress([{responseId:'other'}],()=>undefined)[0].responseId,'other')
+})
 test('restored captions initialize and test without starting speech capture',async()=>{
   const calls=[]
   const f=fixture({captionsEnabled:true},()=>({
