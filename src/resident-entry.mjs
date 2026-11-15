@@ -62,6 +62,7 @@ export async function apply(ctx, config) {
     installTools: agent => installNativeManagement({ ctx, agent, settings, ledger: domain.table('requests'), defineTool }),
     openSettings: () => { if (!settingsUrl) throw Error('ASSISTANT_SETTINGS_URL_UNAVAILABLE'); return host.openSettings(settingsUrl) },
   })
+  await host.initialize()
   unregister = ctx.connection.fetch.register({ path: '/api/voice-assistant', methods: ['GET','POST'], requestBody: 'buffered',
     async fetch(request) {
       if (disposed) return json({ error: 'ASSISTANT_CLOSED' }, 503)

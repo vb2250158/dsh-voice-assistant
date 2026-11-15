@@ -8,6 +8,6 @@ window.audioDevice.onCommand(message=>{
   document.getElementById('caption').style.background=settings.skin==='light'?'rgba(245,248,255,'+alpha+')':'rgba(15,23,42,'+alpha+')'
   document.getElementById('text').style.fontSize=Math.min(48,Math.max(16,Number(settings.fontSize)||24))+'px'
   document.getElementById('state').textContent=presentation.statusText||'语音助手'
-  document.getElementById('text').textContent=String(presentation.text||'').slice(-600)
+  document.getElementById('text').textContent=String(presentation.text||'字幕已开启，等待助手回复…').slice(-600)
 })
 for(const button of document.querySelectorAll('[data-action]'))button.addEventListener('click',()=>window.audioDevice.send({action:button.dataset.action}))

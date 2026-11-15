@@ -3,14 +3,33 @@ import assert from 'node:assert/strict'
 import {createResidentHost} from './generated/resident-host.js'
 import {createSettingsStore} from './generated/settings-store.js'
 import {createSpeechCredentials} from './generated/speech-credentials.js'
-function fixture(initial={}) {
+function fixture(initial={},makeDevice) {
   let value={electronExecutable:process.execPath,...initial},revision=0,opens=0,failCleanup=false
   const store=createSettingsStore({describe:()=>[{ns:'voice',value,revision}],async update(_ns,patch,expected){assert.equal(expected,revision);value={...value,...patch};revision++}},'voice',()=>value)
   const credentials=createSpeechCredentials({describeRecord:async()=>({configured:false,writable:true})},(a,b)=>a+'/'+b)
   const host=createResidentHost({ctx:{on:()=>()=>{},inject:()=>{},sessionController:{modelCatalog:async()=>({groups:[]})}},settings:store.read,saveSettings:store.save,binding:{get:()=>({})},credentials,
-    deviceFactory:async()=>{opens++;return {enumerateDevices:async()=>[],async close(){if(failCleanup)throw Error('PROCESS_CLEANUP_UNCONFIRMED')}}}})
+    deviceFactory:async()=>{opens++;return makeDevice ? makeDevice() : {enumerateDevices:async()=>[],async close(){if(failCleanup)throw Error('PROCESS_CLEANUP_UNCONFIRMED')}}}})
   return {host,store,opens:()=>opens,failCleanup:()=>{failCleanup=true}}
 }
+test('restored captions initialize and test without starting speech capture',async()=>{
+  const calls=[]
+  const f=fixture({captionsEnabled:true},()=>({
+    async configurePresenter(value){calls.push(['configure',value.enabled]);return {visible:true,movable:true,resizable:true}},
+    async present(value){calls.push(['present',value.text])},
+    async close(){calls.push(['close'])},
+    async startCapture(){assert.fail('captions must not start capture')},
+  }))
+  await f.host.initialize()
+  let state=await f.host.state()
+  assert.equal(state.caption.status,'visible')
+  assert.equal(state.voice.phase,'stopped')
+  state=await f.host.command({action:'test-captions'})
+  assert.ok(state.caption.lastTestAt)
+  assert.ok(calls.some(call=>call[0]==='present'&&call[1]==='这是一条测试字幕。'))
+  assert.equal(f.opens(),1)
+  await f.host.dispose()
+  assert.equal(calls.filter(call=>call[0]==='close').length,1)
+})
 test('failed diagnostic release fences subsequent diagnostics and resident acquisition',async()=>{
   const f=fixture();f.failCleanup()
   await assert.rejects(f.host.command({action:'devices'}),/CLEANUP_UNCONFIRMED/)

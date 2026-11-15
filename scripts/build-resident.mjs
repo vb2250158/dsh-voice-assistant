@@ -39,6 +39,11 @@ const client=await build({entryPoints:['src/resident-client.mjs'],bundle:true,fo
   external:['react','@deepseek-ai/dsh-*'],plugins:[shared],nodePaths,minifyWhitespace:true,legalComments:'none'})
 await writeFile('dist/client.js',`window.__ModuleLoader__.load({id:'dsh-voice-assistant',factory:(require)=>{var module={exports:{}};var exports=module.exports;\n${client.outputFiles[0].text}\nreturn module.exports;}});\n`)
 await cp(join(pc,'runtime'),'runtime',{recursive:true})
+// Keep copied text reproducible when the shared checkout uses Windows line endings.
+for(const file of ['caption.css','caption.js','main.cjs']){
+  const path=join('runtime',file),content=await readFile(path,'utf8')
+  if(content.includes('\r\n'))await writeFile(path,content.replace(/\r\n/g,'\n'))
+}
 await writeFile('dist/build-info.json',JSON.stringify({schemaVersion:2,inputs,hostSha256:sha(await readFile('dist/index.js')),clientSha256:sha(await readFile('dist/client.js'))},null,2)+'\n')
 await writeFile('sdk-snapshot.json',JSON.stringify(inputs,null,2)+'\n')
 await mkdir('tests/generated',{recursive:true})
