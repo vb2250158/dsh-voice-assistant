@@ -46,6 +46,10 @@ export function observeSessionOutput({ eventSource, voice, onError, onText = () 
       }
       if (entry.type !== 'transient' || entry.event.type !== 'assistant/live-chunk') continue
       const { attemptId, turn, step, chunk } = entry.event.data
+      if ((chunk.type === 'block-start' && chunk.blockType === 'tool-call') || chunk.type === 'tool-call-delta') {
+        responses.get(String(attemptId))?.token.finishSpeechSegment?.()
+        continue
+      }
       if (chunk.type !== 'text-delta' || typeof chunk.text !== 'string' || !chunk.text) continue
       const key = String(attemptId)
       if (!responses.has(key)) { foreground = key; responses.set(key, { token:voice.beginResponse({ id: key }) ?? { append() {}, setSpeech() {}, finish() {} }, decoder: createDecoder?.(speechPolicy(turn)), turn, step, confirmed:false, text: '' }) }

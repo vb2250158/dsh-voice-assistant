@@ -23,12 +23,12 @@
         "src/speech-expression.js": "d10d0a2574a85f9378acf02ca6fe80fad2bbcceea4f849355162404766a40bd3",
         "src/speech-observation.d.ts": "27fffa16b6b64857f68ec36f2861ff65d36818fa77cfa111e369d2db89579c0e",
         "src/speech-observation.js": "b2f0dc8c9aa5c80b0d1c10a967ef3b87546b00fd709f112744e49483f76c6597",
-        "src/speech-playback.d.ts": "85e43f1e0f411696659f53a2e454b6f4001a1cd64cd95d5841228b254f2c8043",
-        "src/speech-playback.js": "aa0df1e0e2f41dc1a3058e0ceb2da99e75df67b17f20ecaa1a033b50615df7ec",
+        "src/speech-playback.d.ts": "3350ac4406c909cd29ed4a103cbf00fc9c3948b9719e139ed3b76820111802d1",
+        "src/speech-playback.js": "f2747fd41794ed765c26f72a8a43a89ad620a9e80911140d66cd8ab24a6d512b",
         "src/turn-runtime.d.ts": "ee12c8625ba8d732eb9c16c29deb74f601ec2089ed5a4fb87854e3be76f3d62e",
         "src/turn-runtime.js": "4bc066c3bd20542dc4b7cb739aefc73565f0453922a8a290276fab342385b4a0",
-        "src/voice-interaction.d.ts": "30fdac457a15057a0b0f1b8877e4f9af21f9573951c5b98eeb3368d87458751c",
-        "src/voice-interaction.js": "7c541fadd4e7cc0fb4aad7536dc8bac0622108e970977968cefe577cfa35dea7",
+        "src/voice-interaction.d.ts": "91905988eedf6c67c40c44fd4c1c1a94ffb1151b5a2e59acfb590dcdb8662482",
+        "src/voice-interaction.js": "450855a21e87885a2a5b884f0329e8d4174b2011e371e60b8b7b94906aa367ac",
         "ui/assistant-panel-styles.js": "d4bbb1f77c0b315617f6220e961300b5cba12f06b6cd82599ddda1da8a3fa0c2",
         "ui/assistant-panel.d.ts": "65a814e2ae9928ae3d440c481a7c6849a0bbf0fda9cf150f0992a17e2975354c",
         "ui/assistant-panel.js": "0bbe1c5b12e0e885e03c97a516d4f35bced24223cff8ad36d455d73a3cec2aa1",
@@ -43,7 +43,7 @@
       "files": {
         "src/assistant-host.mjs": "4eb5296bcbf8a407d27e4ec3347b28e1b25d2f43cbba7a972c9d416ce626d936",
         "src/assistant-settings.mjs": "de52bfe1320d3ed4a497a50fa21033725d1aa6a418dae9ddfd65b7f190ddce8d",
-        "src/caption-progress.mjs": "016c211c38428c32a1d9be40d4c82041232d5867500de5245174c82211704281",
+        "src/caption-progress.mjs": "7765dec5789b9764a2a0145dfdc7167bddde2ee6c068540e44e2c76a8b66b047",
         "src/chat-model.mjs": "32d43ce97edc1d5c72555e64a206a4f13c4bba5f62c8576aa7636f46f56d9b16",
         "src/desktop-asr.mjs": "af94b396d8e6ac00d483668ea7d640843748640c375ad5ec9ae1c619e99b1a45",
         "src/device-executable.mjs": "f4fddc04a159097f189d359ceedbaa81caab55d079de089bcbedf291780ddea0",
@@ -91,6 +91,6 @@
       }
     }
   },
-  "hostSha256": "b195b5c0c61f17941d1af1080272ad485fae6f32a5d06620e3b8105af611a491",
+  "hostSha256": "e161bb043f1f26d669e52d69ff99e30f4819e1556d28f878b23fb206289b6830",
   "clientSha256": "8bd51dd003d5fe6c32471e963f40dd8e30c8c1ddc159f3e5640940855ca1dade"
 }

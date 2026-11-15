@@ -2,6 +2,28 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { observeSessionOutput } from '../src/session-output.mjs'
 
+test('seals the current speech segment on native tool call without ending the response', () => {
+  let snapshot={revision:0},notify
+  const calls=[],source={getSnapshot:()=>snapshot,subscribe(fn){notify=fn;return()=>{}}}
+  const voice={beginResponse:({id})=>({append:text=>calls.push([id,'text',text]),finishSpeechSegment:()=>calls.push([id,'segment']),finish:()=>calls.push([id,'finish'])})}
+  const stop=observeSessionOutput({eventSource:source,voice,onError:error=>{throw error}})
+  const send=(revision,attemptId,chunk)=>{snapshot={revision,change:{kind:'append',entries:[{type:'transient',event:{type:'assistant/live-chunk',data:{attemptId,turn:1,step:1,chunk}}}]}};notify()}
+  send(1,'a',{type:'text-delta',text:'先查一下。'})
+  send(2,'a',{type:'block-start',blockType:'tool-call'})
+  send(3,'a',{type:'text-delta',text:'继续说。'})
+  assert.deepEqual(calls,[['a','text','先查一下。'],['a','segment'],['a','text','继续说。']])
+  stop()
+})
+
+test('tool events without a matching live response do not seal a different response', () => {
+  let snapshot={revision:0},notify,segments=0
+  const source={getSnapshot:()=>snapshot,subscribe(fn){notify=fn;return()=>{}}}
+  const stop=observeSessionOutput({eventSource:source,voice:{beginResponse:()=>({append(){},finishSpeechSegment(){segments++},finish(){}})},onError:error=>{throw error}})
+  snapshot={revision:1,change:{kind:'append',entries:[{type:'transient',event:{type:'assistant/live-chunk',data:{attemptId:'a',chunk:{type:'text-delta',text:'说话'}}}}]}};notify()
+  snapshot={revision:2,change:{kind:'append',entries:[{type:'transient',event:{type:'assistant/live-chunk',data:{attemptId:'b',chunk:{type:'block-start',blockType:'tool-call'}}}}]}};notify()
+  assert.equal(segments,0);stop()
+})
+
 test('projects only new live text once and retires its owner at durable settlement', () => {
   let snapshot = { revision: 0, change: { kind: 'replace', entries: [] } }, notify
   const source = { getSnapshot: () => snapshot, subscribe: fn => { notify = fn; return () => { notify = null } } }
