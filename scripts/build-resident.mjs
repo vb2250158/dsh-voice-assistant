@@ -30,6 +30,7 @@ const entries={
   '@rabilink/assistant-runtime/playback':join(sdk,'src/speech-playback.js'),
   '@rabilink/assistant-runtime/voice':join(sdk,'src/voice-interaction.js'),
   '@rabilink/desktop-voice-service/expression':join(pc,'src/tts-expression.mjs'),
+  '@rabilink/desktop-voice-service/speech-details':join(pc,'src/speech-details.mjs'),
 }
 const shared={name:'shared-voice-inputs',setup(builder){builder.onResolve({filter:/^@rabilink\//},args=>{if(!entries[args.path])throw Error('Unknown shared import');return {path:resolve(entries[args.path])}})}}
 const nodePaths=(process.env.VOICE_BUILD_NODE_PATHS||'').split(';').filter(Boolean)

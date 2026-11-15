@@ -18,7 +18,7 @@ test('built shared presenter uses native history and closing it never stops Host
   const primitives={Button:p=>React.createElement('button',p,p.children),Input:p=>React.createElement('input',p),
     Modal:p=>p.open?React.createElement('section',null,p.children):null,IconMicrophoneOutlineRegular:()=>null}
   const plugin=descriptor.factory(name=>name==='react'?React:primitives)
-  const ctx={effect:fn=>fn(),provide(){},layout:{selectPanel(){}},locale:{register:()=>()=>{},bind:()=>()=>''},
+  const ctx={effect:fn=>fn(),provide(){},layout:{selectPanel(){}},locale:{register:()=>()=>{},bind:()=>key=>key==='back'?'返回':''},
     slots:{inject:(_name,fn)=>fn(),register:(spec,component)=>{slots.set(spec.name,component);return()=>{}}},
     sessions:{ensureListed:async()=>true,create(){created++;throw Error('client cannot create')},retain(id){assert.equal(id,'owned-session');return {ready:Promise.resolve({}),release(){released++}}}},
     uiConversation:{binding(){return {target:()=>({getSnapshot:()=>conversationSnapshot,subscribe:fn=>{notifyConversation=fn;return()=>{notifyConversation=undefined}}})}}}}
@@ -30,6 +30,8 @@ test('built shared presenter uses native history and closing it never stops Host
   await renderer.act(async()=>{view.root.findAllByType('button').find(button=>button.props.children==='刷新设备').props.onClick();for(let i=0;i<15;i++)await Promise.resolve()})
   assert.ok(JSON.stringify(view.toJSON()).includes('未找到 Electron'))
   assert.ok(JSON.stringify(view.toJSON()).includes('当前 DSH Home'))
+  assert.equal(view.root.findAllByType('input').some(input=>input.props['aria-label']==='消息'),false)
+  await renderer.act(async()=>{view.root.findAllByType('button').find(button=>button.props.children==='返回').props.onClick();await Promise.resolve()})
   await renderer.act(async()=>{view.root.findAllByType('input').find(input=>input.props['aria-label']==='消息').props.onChange({target:{value:'hello'}});await Promise.resolve()})
   await renderer.act(async()=>{view.root.findAllByType('button').find(button=>button.props.children==='发送').props.onClick();for(let i=0;i<15;i++)await Promise.resolve()})
   assert.equal(calls.filter(call=>call.action==='text').length,1)
@@ -37,7 +39,7 @@ test('built shared presenter uses native history and closing it never stops Host
   conversationSnapshot={order:['failure'],nodes:new Map([['failure',failure]])}
   await renderer.act(async()=>{notifyConversation();await Promise.resolve()})
   assert.ok(JSON.stringify(view.toJSON()).includes('当前对话模型缺少凭据'))
-  assert.ok(view.root.findAllByType('p').some(node=>node.props.role==='alert'))
+  assert.ok(view.root.findAllByType('article').some(node=>node.props.role==='alert'))
   assert.equal(JSON.stringify(view.toJSON()).includes('已受理'),false)
   assert.equal(calls.filter(call=>call.action==='text').length,1,'failure projection never retries native work')
   await renderer.act(async()=>{view.unmount();await Promise.resolve()})

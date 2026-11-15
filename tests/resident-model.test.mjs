@@ -31,5 +31,13 @@ test('model selection applies the provider and model to the native assistant ses
   ctx.sessionController.selectModel = async () => { throw Error('MODEL_UNAVAILABLE') }
   await assert.rejects(host.command({ action: 'select-model', provider: 'provider-b', model: 'model-y' }), /MODEL_UNAVAILABLE/)
   assert.deepEqual((await host.state()).selectedModel, { provider: 'provider-a', model: 'model-x' })
+  agent.status='idle';agent.inbox={nextTurn:[],nextStep:[]};agent.runMaintenance=async fn=>fn(new AbortController().signal)
+  ctx.sessionController.state=async()=>({active:true,running:false,queue:[],pendingInput:[]})
+  const oldId=binding.sessionId
+  await assert.rejects(host.command({action:'clear-context',sessionId:oldId}),/CONFIRM_REQUIRED/)
+  await assert.rejects(host.command({action:'clear-context',sessionId:'stale',confirm:true}),/CONTEXT_STALE/)
+  const cleared=await host.command({action:'clear-context',sessionId:oldId,confirm:true})
+  assert.notEqual(cleared.sessionId,oldId);assert.equal(binding.sessionId,cleared.sessionId)
+  assert.equal(cleared.context.storage,'native');assert.equal(cleared.context.busy,false)
   await host.dispose()
 })

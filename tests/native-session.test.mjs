@@ -3,13 +3,14 @@ import assert from 'node:assert/strict'
 import { createNativeSession } from '../src/native-session.mjs'
 function fixture(saved={}) {
   const listeners=new Map(),sections=new Map(),hooks=new Map(),calls=[];let config={persona:'first'}
-  const agent={id:saved.sessionId,ctx:{systemPrompt:{async assemble(){
+  const agent={id:saved.sessionId,status:'idle',inbox:{nextTurn:[],nextStep:[]},runMaintenance:async fn=>fn(new AbortController().signal),ctx:{systemPrompt:{async assemble(){
     const initial={sections:[{name:'deployment:persona-prefix',text:'preset persona'},{name:'tool:existing',text:'native tools'}],contexts:[],variables:{}}
     return hooks.get('system-prompt/assemble')?.(initial,{},async()=>initial)??initial
   }},on(name,fn){hooks.set(name,fn);return()=>hooks.delete(name)}}}
   const ctx={on(name,fn){listeners.set(name,fn);return()=>listeners.delete(name)},sessionController:{
     async create(args){calls.push(args);agent.id=args.sessionId;return {sessionId:args.sessionId}},
     async resolveAgent(id){assert.equal(id,agent.id);return {agent}},
+    async state(){return {active:true,running:false,queue:[],pendingInput:[]}},
     async prompt(args,signal){calls.push({prompt:args,signal});return {accepted:true}},
   }}
   const binding={get:()=>saved,async set(value){saved=value}}
@@ -66,4 +67,62 @@ test('voice instruction and enabled capability snapshot join the native prompt w
   await f.hooks.get('agent/request-context')({agent:f.agent,turn:1},async()=>{})
   assert.equal(session.getSpeechPolicy(1).enabled,true)
   session.close()
+})
+test('speech details stay outside native model input and associate playback with its original step',async()=>{
+  const f=fixture();f.session.close()
+  const session=f.create({safeDetails:value=>JSON.parse(JSON.stringify(value, (key,item)=>key==='token'?'[hidden]':item))})
+  await session.submit('说句话','request-1234',{source:'speech',details:{kind:'asr',result:{emotion:'happy',token:'secret'}}})
+  assert.deepEqual(f.calls.at(-1).prompt.content,[{type:'text',text:'说句话'}])
+  assert.equal(session.messageDetails('u:request-1234').result.token,'[hidden]')
+  const stream=f.listeners.get('agent/assistant-stream')
+  stream({agent:f.agent,frame:{type:'start',attemptId:'reply-1',turn:2,step:3}})
+  session.updateSpeechText('reply-1','你好')
+  session.recordSpeechDetails('reply-1',{type:'request',requestId:'one',status:'sent',token:'secret'})
+  session.recordSpeechDetails('reply-1',{type:'request',requestId:'one',status:'finished'})
+  for(let i=2;i<=6;i++)session.recordSpeechDetails('reply-1',{type:'request',requestId:String(i)})
+  session.recordSpeechDetails('reply-1',{type:'playback',status:'ended'})
+  const result=session.messageDetails('a:2:3')
+  assert.equal(result.message.text,'你好');assert.equal(result.requestCount,6);assert.equal(result.requests.length,4)
+  assert.equal(result.playback.status,'ended');assert.deepEqual(session.detailIndex(),['u:request-1234','a:2:3'])
+  session.close();assert.throws(()=>session.messageDetails('a:2:3'),/UNAVAILABLE/)
+})
+test('speech detail retention evicts the oldest of more than 100 messages',async()=>{
+  const f=fixture()
+  for(let n=0;n<101;n++)await f.session.submit('test','request-'+String(n).padStart(4,'0'),{source:'speech',details:{kind:'asr'}})
+  assert.equal(f.session.detailIndex().length,100)
+  assert.throws(()=>f.session.messageDetails('u:request-0000'),/UNAVAILABLE/)
+  assert.equal(f.session.messageDetails('u:request-0100').kind,'asr')
+  f.session.close()
+})
+test('explicit clear switches the durable native session without deleting the old one',async()=>{
+  const f=fixture();const old=await f.session.open()
+  assert.equal(f.session.contextState().busy,false)
+  await assert.rejects(f.session.clearContext('stale'),/CONTEXT_STALE/)
+  const next=await f.session.clearContext(old)
+  assert.notEqual(next,old);assert.equal(f.binding.get().sessionId,next)
+  assert.equal(f.calls.filter(call=>call.sessionId===old).length,1)
+  assert.equal(f.calls.filter(call=>call.sessionId===next).length,1)
+  f.session.close()
+})
+test('clear refuses pending native input and keeps its original session',async()=>{
+  const f=fixture();const old=await f.session.open();f.agent.inbox.nextTurn.push({})
+  assert.equal(f.session.contextState().busy,true)
+  await assert.rejects(f.session.clearContext(old),/CONTEXT_BUSY/)
+  assert.equal(f.binding.get().sessionId,old);assert.equal(f.calls.length,1)
+  f.session.close()
+})
+test('clear restores its old binding when input arrives during persistence',async()=>{
+  const f=fixture(),old=await f.session.open(),set=f.binding.set
+  f.binding.set=async value=>{await set(value);if(value.sessionId!==old)f.agent.inbox.nextTurn.push({})}
+  await assert.rejects(f.session.clearContext(old),/CONTEXT_BUSY/)
+  assert.equal(f.binding.get().sessionId,old);assert.equal(f.session.getSessionId(),old)
+  f.session.close()
+})
+test('uncertain binding writes fence later submissions',async()=>{
+  const f=fixture(),old=await f.session.open()
+  f.binding.set=async()=>{throw Error('WRITE_UNKNOWN')}
+  await assert.rejects(f.session.clearContext(old),/CONTEXT_SWITCH_UNCONFIRMED/)
+  assert.equal(f.session.contextState().status,'failed')
+  await assert.rejects(f.session.submit('hello','request-1234'),/CONTEXT_SWITCH_UNCONFIRMED/)
+  f.session.close()
 })

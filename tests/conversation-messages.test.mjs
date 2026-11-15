@@ -29,3 +29,10 @@ test('native terminal notices preserve projection order, visibility and failure 
   nodes[1].data={code:'toString',message:''}
   assert.equal(typeof conversationMessages(snapshot,1)[0].text,'string')
 })
+test('maps diagnostic identities to native messages without including detail payloads',()=>{
+  const nodes=[{key:'u',kind:'user',visibility:'visible',data:{content:[{type:'text',text:'你好'}],source:{kind:'user',rpcId:'request-1234'}}},
+    {key:'a',kind:'assistant-step',visibility:'visible',data:{turn:2,step:3,blocks:[{kind:'text',text:'答复'}]}}]
+  const projected=conversationMessages({order:['u','a'],nodes:new Map(nodes.map(node=>[node.key,node]))},100,undefined,new Set(['u:request-1234','a:2:3']))
+  assert.deepEqual(projected,[{id:'u:request-1234',role:'user',text:'你好',hasDetails:true,source:'speech'},
+    {id:'a:2:3',role:'assistant',text:'答复',hasDetails:true}])
+})

@@ -3,6 +3,7 @@ import { createSpeechProviders } from '@rabilink/desktop-voice-service/speech-pr
 import { speechProviders } from '@rabilink/desktop-voice-service/provider-profiles'
 import { speechExpressionPolicy } from '@rabilink/desktop-voice-service/expression'
 import { speechExpressionInstruction, createSpeechExpressionDecoder } from '@rabilink/assistant-runtime/voice'
+import { safeSpeechDetails } from '@rabilink/desktop-voice-service/speech-details'
 import { createNativeSession } from './native-session.mjs'
 import { observeSessionOutput } from './session-output.mjs'
 
@@ -17,8 +18,8 @@ export function createResidentHost({ ctx, binding, installTools, ...options }) {
   const host = createSharedResidentHost({
     ...options,
     supportsDynamicExpression: true,
-    conversation: ({ onError }) => (native = createNativeSession(ctx, { settings: options.settings, binding, installTools, onError, speechPolicy: speechExpressionPolicy, speechInstruction: speechExpressionInstruction({ enabled: true }) })),
-    observeOutput: ({ conversation, ...args }) => observeSessionOutput({ eventSource: conversation.eventSource, createDecoder: createSpeechExpressionDecoder, speechPolicy: conversation.getSpeechPolicy, ...args }),
+    conversation: ({ onError }) => (native = createNativeSession(ctx, { settings: options.settings, binding, installTools, onError, speechPolicy: speechExpressionPolicy, speechInstruction: speechExpressionInstruction({ enabled: true }), safeDetails: safeSpeechDetails })),
+    observeOutput: ({ conversation, onText, ...args }) => observeSessionOutput({ eventSource: conversation.eventSource, createDecoder: createSpeechExpressionDecoder, speechPolicy: conversation.getSpeechPolicy, onText: value => { conversation.updateSpeechText(value.responseId, value.text); onText(value) }, ...args }),
     createProviders: config => createSpeechProviders({ config, credentials: options.credentials }),
   })
   let catalogCache, catalogAt = 0, selectedModel, catalogError
@@ -45,8 +46,9 @@ export function createResidentHost({ ctx, binding, installTools, ...options }) {
       try { availablePresets = (await presets.service.list()).filter(item => !item.broken).map(item => ({ id: item.id, label: item.name || item.id })) }
       catch (error) { options.diagnose?.('preset-list', error); throw error }
     }
-    return { ...state, selectedModel: current,
-      capabilities: { host: 'dsh', speechProviders, hostModels: await modelCatalog(),
+    const context = native?.contextState()
+    return { ...state, selectedModel: current, messageDetailsIndex: native?.detailIndex() ?? [], context: context && { ...context, busy: context.busy || state.voice.phase !== 'stopped' },
+      capabilities: { host: 'dsh', contextManagement: true, speechProviders, hostModels: await modelCatalog(),
         ...(catalogError ? { hostModelsError: catalogError } : {}),
         ...(availablePresets ? { presets: availablePresets } : {}),
       },
@@ -54,6 +56,12 @@ export function createResidentHost({ ctx, binding, installTools, ...options }) {
   }
   return { ...host, state: async () => withCapabilities(await host.state()),
     async command(request) {
+      if (request.action === 'clear-context') {
+        if (request.confirm !== true) throw Error('ASSISTANT_CONTEXT_CONFIRM_REQUIRED')
+        if ((await host.state()).voice.phase !== 'stopped') throw Error('ASSISTANT_STOP_VOICE_BEFORE_CLEAR')
+        await native.clearContext(request.sessionId)
+        return withCapabilities(await host.state())
+      }
       if (request.action === 'settings') {
         const patches = Array.isArray(request.patches) ? request.patches : [request.patch]
         if (patches.some(patch => patch && Object.hasOwn(patch, 'agentPreset'))) {

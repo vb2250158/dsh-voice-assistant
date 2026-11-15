@@ -34,3 +34,15 @@ test('missing or synchronously failing retain reports an error without crashing'
     await flush(); assert.equal(errors.length, 1); dispose()
   }
 })
+test('details index updates an existing native message and detaches on close',async()=>{
+  let updateIndex,unsubscribed=false,index=new Set()
+  const node={key:'key',kind:'user',visibility:'visible',data:{content:[{type:'text',text:'你好'}],source:{rpcId:'request-1234'}}}
+  const source={getSnapshot:()=>({order:['key'],nodes:new Map([['key',node]])}),subscribe:()=>()=>{}}
+  const ctx={sessions:{ensureListed:async()=>true,retain:()=>({ready:Promise.resolve('binding'),release(){}})},uiConversation:{binding:()=>({target:()=>source})}}
+  const received=[]
+  const stop=subscribeConversation(ctx,'existing',value=>received.push(value),error=>{throw error},undefined,()=>index,fn=>{updateIndex=fn;return()=>{unsubscribed=true}})
+  await flush();assert.equal(received.at(-1)[0].hasDetails,undefined)
+  index=new Set(['u:request-1234']);updateIndex()
+  assert.equal(received.at(-1)[0].hasDetails,true)
+  stop();assert.equal(unsubscribed,true)
+})
