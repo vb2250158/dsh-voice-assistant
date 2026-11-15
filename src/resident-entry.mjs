@@ -9,6 +9,8 @@ import { optionalNativeSpeech } from './optional-speech.mjs'
 import { optionalPetPresenter } from './optional-pet.mjs'
 import { createSpeechCredentials } from './speech-credentials.mjs'
 import { createResidentHost } from './resident-host.mjs'
+import { volcanoAsrParameters } from '@rabilink/desktop-voice-service/speech-catalog'
+import { createAsrMigration } from './asr-migration.mjs'
 import { installNativeManagement } from './native-management.mjs'
 
 export const name = 'dsh-voice-assistant'
@@ -17,7 +19,7 @@ export const Config = ResidentSettingsSchema.volatile().default({})
 export const domainSpec = defineDomain({ name: 'voice_assistant', version: 1,
   global: { schema: z.object({ sessionId: z.string().optional(), creating: z.boolean().optional() }), initial: {} },
   tables: { requests: domainTable(z.object({ fingerprint: z.string(), sessionId: z.string(), requestId: z.string(),
-    status: z.string(), result: z.record(z.string(), z.unknown()).optional() })) },
+    status: z.string(), result: z.record(z.string(), z.unknown()).optional() })), migrations: domainTable(z.object({ applied:z.literal(true) })) },
 })
 const json = (value, status = 200) => Response.json(value, { status, headers: { 'cache-control':'no-store' } })
 async function readCommand(request) {
@@ -37,12 +39,12 @@ async function readCommand(request) {
 export async function apply(ctx, config) {
   ctx.effect(() => ctx.settings.configure({ auto: false }, ctx.fiber))
   const domain = await ctx.storageDomain.open(domainSpec)
-  let disposed = false, settingsUrl, store, host, unregister
+  let disposed = false, settingsUrl, store, host, unregister, migration
   // Register cleanup immediately after acquisition, including partially failed initialization.
   ctx.effect(() => async () => {
     disposed = true
     const errors = []
-    for (const release of [() => unregister?.(), () => host?.dispose(), () => store?.close(), () => domain.close()]) {
+    for (const release of [() => unregister?.(), () => migration?.close(), () => host?.dispose(), () => store?.close(), () => domain.close()]) {
       try { await release() } catch (error) { errors.push(error) }
     }
     if (errors.length) throw new AggregateError(errors, 'ASSISTANT_CLEANUP_FAILED')
@@ -56,6 +58,8 @@ export async function apply(ctx, config) {
     ctx.logger.warn('voice assistant %s failed (%s): %s', stage, name, frames.join(' > '))
   }
   const settings = () => { try { return store.read() } catch (error) { diagnose('settings-read', error); throw error } }
+  migration = createAsrMigration({ store, ledger:domain.table('migrations'), fields:volcanoAsrParameters })
+  ctx.on('settings/document-updated', ns => { if (ns === namespace && !disposed) void migration.run().catch(error => diagnose('asr-migration', error)) })
   const saveSettings = store.save
   host = createResidentHost({ ctx, settings, saveSettings, previewSettings: store.preview, saveSettingsBatch: store.saveBatch, diagnose, binding: domain.global, deviceFactory: openDesktopDevice, speech: optionalNativeSpeech(ctx), pet: optionalPetPresenter(ctx),
     credentials: createSpeechCredentials(ctx.credentials, credentialKey),
@@ -70,6 +74,7 @@ export async function apply(ctx, config) {
       if (['localhost','127.0.0.1','[::1]'].includes(url.hostname) && ['http:','https:'].includes(url.protocol)) settingsUrl = url.origin + '/?voice-assistant=1'
       let stage = 'request'
       try {
+        await migration.run()
         const result = request.method === 'GET' ? await host.state() : await host.command(await readCommand(request))
         stage = 'response-serialization'
         return json(result)

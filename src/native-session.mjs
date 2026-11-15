@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 /** One durable native Session; audio and presenter lifetimes never cancel it. */
-export function createNativeSession(ctx, { settings, binding, installTools = () => () => {}, onError = () => {}, speechInstruction = '', speechPolicy = () => ({ enabled: false }), safeDetails = value => value }) {
+export function createNativeSession(ctx, { settings, binding, installTools = () => () => {}, onError = () => {}, speechInstruction = '', speechPolicy = () => ({ enabled: false }), safeDetails = value => value, createDecoder }) {
   let id = binding.get().sessionId || undefined, opening, switching = false, bindingUncertain = false, closed = false, attached
   let persona = settings().persona, turn, attempt, pendingPolicy, snapshot = { revision: 0 }
   const policies = new Map()
@@ -91,6 +91,22 @@ export function createNativeSession(ctx, { settings, binding, installTools = () 
   }
   return {
     open, getSessionId: () => id, getModel: () => attached?.model.current(), getSpeechPolicy: turn => policies.get(turn) ?? speechPolicy(settings()),
+    recognitionContext() {
+      const session = attached?.session, nodes = session?.surface?.nodes
+      if (!Array.isArray(nodes) || typeof session.eventAt !== 'function' || typeof session.deriveEventMessage !== 'function') return []
+      for (let i = nodes.length - 1; i >= Math.max(0, nodes.length - 128); i--) {
+        const event = session.eventAt(nodes[i])
+        if (event?.type !== 'assistant/message') continue
+        const message = session.deriveEventMessage(event)
+        if (message?.role !== 'assistant' || !Array.isArray(message.content)) continue
+        let text = message.content.filter(block => block.type === 'text' && typeof block.text === 'string').map(block => block.text).join('')
+        if (createDecoder) { const decoder = createDecoder(); decoder.push(text); text = decoder.finish().text }
+        if (!text.trim()) continue
+        if (/\bsk-[a-z0-9_-]{16,}|\bbearer\s+[a-z0-9._-]{16,}|\b(?:api[_ -]?key|token|secret|password)\s*[:=]\s*\S{8,}/i.test(text)) return []
+        return [{ role:'assistant', text:text.slice(-2048) }]
+      }
+      return []
+    },
     contextState() {
       const inbox = attached?.inbox
       return { storage:'native', status:bindingUncertain?'failed':'ready', busy: Boolean(bindingUncertain || switching || opening || !attached || attached.status !== 'idle' || !inbox || inbox.nextTurn.length || inbox.nextStep.length), ...(bindingUncertain?{error:'ASSISTANT_CONTEXT_SWITCH_UNCONFIRMED'}:{}) }

@@ -68,6 +68,22 @@ test('voice instruction and enabled capability snapshot join the native prompt w
   assert.equal(session.getSpeechPolicy(1).enabled,true)
   session.close()
 })
+test('recognition context uses only the latest visible assistant text in the current native session',async()=>{
+  const f=fixture();f.session.close()
+  const events=new Map([[1,{type:'assistant/message',data:{message:{content:[{type:'text',text:'旧回复'}]}}}],
+    [2,{type:'tool/result',data:{message:{content:[{type:'text',text:'工具私有数据'}]}}}],
+    [3,{type:'assistant/message',data:{message:{content:[{type:'reasoning',text:'内部推理'},{type:'text',text:'<voice rate="1"/>当前回复'}]}}}]])
+  f.agent.session={surface:{nodes:[1,2,3]},eventAt:seq=>events.get(seq),deriveEventMessage:event=>({...event.data.message,role:'assistant'})}
+  const session=f.create({createDecoder:()=>({push(value){this.value=value.replace(/^<voice[^>]*\/>/,'')},finish(){return {text:this.value}}})})
+  await session.open()
+  assert.deepEqual(session.recognitionContext(),[{role:'assistant',text:'当前回复'}])
+  f.agent.session.deriveEventMessage=()=>({role:'assistant',content:[{type:'text',text:'经会话投影的回复'}]})
+  assert.deepEqual(session.recognitionContext(),[{role:'assistant',text:'经会话投影的回复'}])
+  f.agent.session.deriveEventMessage=event=>({...event.data.message,role:'assistant'})
+  events.set(3,{type:'assistant/message',data:{message:{content:[{type:'text',text:'api_key=abcdefghijklmnop'}]}}})
+  assert.deepEqual(session.recognitionContext(),[])
+  session.close();assert.deepEqual(session.recognitionContext(),[])
+})
 test('speech details stay outside native model input and associate playback with its original step',async()=>{
   const f=fixture();f.session.close()
   const session=f.create({safeDetails:value=>JSON.parse(JSON.stringify(value, (key,item)=>key==='token'?'[hidden]':item))})

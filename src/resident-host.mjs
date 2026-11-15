@@ -23,9 +23,9 @@ export function createResidentHost({ ctx, binding, installTools, ...options }) {
   const host = createSharedResidentHost({
     ...options,
     supportsDynamicExpression: true,
-    conversation: ({ onError }) => (native = createNativeSession(ctx, { settings: options.settings, binding, installTools, onError, speechPolicy: speechExpressionPolicy, speechInstruction: speechExpressionInstruction({ enabled: true }), safeDetails: safeSpeechDetails })),
+    conversation: ({ onError }) => (native = createNativeSession(ctx, { settings: options.settings, binding, installTools, onError, speechPolicy: speechExpressionPolicy, speechInstruction: speechExpressionInstruction({ enabled: true }), safeDetails: safeSpeechDetails, createDecoder: createSpeechExpressionDecoder })),
     observeOutput: ({ conversation, onText, ...args }) => observeSessionOutput({ eventSource: conversation.eventSource, createDecoder: createSpeechExpressionDecoder, speechPolicy: conversation.getSpeechPolicy, onText: value => { conversation.updateSpeechText(value.responseId, value.text); onText(value) }, ...args }),
-    createProviders: config => createSpeechProviders({ config, credentials: options.credentials }),
+    createProviders: (config, { recognitionContext } = {}) => createSpeechProviders({ config, credentials: options.credentials, recognitionContext }),
   })
   let catalogCache, catalogAt = 0, selectedModel, catalogError
   async function modelCatalog(refresh = false) {
