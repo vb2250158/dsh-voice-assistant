@@ -39,6 +39,7 @@ test('real Loader activates complete built apply, preserves live Config and pers
   const { default: ConfigEditor } = await import('@deepseek-ai/dsh-config-editor')
   const { default: Settings } = await import('@deepseek-ai/dsh-settings')
   const { default: Storage } = await import('@deepseek-ai/dsh-storage')
+  const { default: SessionProjections } = await import('@deepseek-ai/dsh-session-projection')
   const { DomainFacility } = await import('@deepseek-ai/dsh-storage-domain')
 
   const plugin = await import('../dist/index.js')
@@ -55,7 +56,7 @@ test('real Loader activates complete built apply, preserves live Config and pers
     writeFileSync(join(bundle, 'package.json'), JSON.stringify({ name: 'test-bundle', version: '1.0.0', dsh: { bundle: { patch: 'cordis.patch.yml' } } }))
     writeFileSync(join(bundle, 'cordis.patch.yml'), JSON.stringify([{ insert: [
       { id: 'config-editor', name: 'cordis:editor' }, { id: 'settings', name: 'cordis:settings' },
-      { id: 'storage', name: 'cordis:storage' }, { id: 'ports', name: 'cordis:ports' },
+      { id: 'storage', name: 'cordis:storage' }, { id: 'projections', name: 'cordis:projections' }, { id: 'ports', name: 'cordis:ports' },
       { id: namespace, name: 'cordis:assistant', config: { persona: 'persisted fixture persona', captionFontSize: 29, asrMode: 'compatible', asrModel: 'gpt-4o-mini-transcribe', ttsModel: 'gpt-4o-mini-tts', ttsVoice: 'alloy' } },
     ] }]))
     writeFileSync(join(dir, 'cordis.yml'), '[]\n')
@@ -82,7 +83,7 @@ test('real Loader activates complete built apply, preserves live Config and pers
       ctx = root
       root.provide('profileContext', context)
       root.provide('appReady', { onReady(listener) { listener(); return () => {} } })
-      Object.assign(root.loader.builtins, { editor: ConfigEditor, settings: Settings, storage: Storage, ports: Ports, assistant: Assistant })
+      Object.assign(root.loader.builtins, { editor: ConfigEditor, settings: Settings, storage: Storage, projections: SessionProjections, ports: Ports, assistant: Assistant })
     })
     await ctx.loader.await()
     const entry = ctx.configEditor.entries().find(value => value.options.id === namespace)

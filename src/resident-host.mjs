@@ -3,7 +3,7 @@ import { createSpeechProviders } from '@rabilink/desktop-voice-service/speech-pr
 import { speechProviders } from '@rabilink/desktop-voice-service/provider-profiles'
 import { speechExpressionPolicy } from '@rabilink/desktop-voice-service/expression'
 import { speechExpressionInstruction, createSpeechExpressionDecoder } from '@rabilink/assistant-runtime/voice'
-import { safeSpeechDetails } from '@rabilink/desktop-voice-service/speech-details'
+import { safeSpeechDetails, asrAgentContext } from '@rabilink/desktop-voice-service/speech-details'
 import { createNativeSession } from './native-session.mjs'
 import { observeSessionOutput } from './session-output.mjs'
 
@@ -13,7 +13,7 @@ export function projectSpeechProgress(progress, messageId) {
 }
 
 /** Bind the shared resident host to the DSH native session and tools. */
-export function createResidentHost({ ctx, binding, installTools, ...options }) {
+export function createResidentHost({ ctx, binding, installTools, speechContext, ...options }) {
   let presets, native
   ctx.inject(['agentPresets'], scope => {
     const lease = { service: scope.agentPresets }
@@ -23,7 +23,7 @@ export function createResidentHost({ ctx, binding, installTools, ...options }) {
   const host = createSharedResidentHost({
     ...options,
     supportsDynamicExpression: true,
-    conversation: ({ onError }) => (native = createNativeSession(ctx, { settings: options.settings, binding, installTools, onError, speechPolicy: speechExpressionPolicy, speechInstruction: speechExpressionInstruction({ enabled: true }), safeDetails: safeSpeechDetails, createDecoder: createSpeechExpressionDecoder })),
+    conversation: ({ onError }) => (native = createNativeSession(ctx, { settings: options.settings, binding, installTools, onError, speechPolicy: speechExpressionPolicy, speechInstruction: speechExpressionInstruction({ enabled: true }), safeDetails: safeSpeechDetails, asrAgentContext, speechContext, createDecoder: createSpeechExpressionDecoder })),
     observeOutput: ({ conversation, onText, ...args }) => observeSessionOutput({ eventSource: conversation.eventSource, createDecoder: createSpeechExpressionDecoder, speechPolicy: conversation.getSpeechPolicy, onText: value => { conversation.updateSpeechText(value.responseId, value.text); onText(value) }, ...args }),
     createProviders: (config, { recognitionContext } = {}) => createSpeechProviders({ config, credentials: options.credentials, recognitionContext }),
   })

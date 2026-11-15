@@ -48,5 +48,5 @@ for(const file of ['caption.css','caption.js','main.cjs']){
 await writeFile('dist/build-info.json',JSON.stringify({schemaVersion:2,inputs,hostSha256:sha(await readFile('dist/index.js')),clientSha256:sha(await readFile('dist/client.js'))},null,2)+'\n')
 await writeFile('sdk-snapshot.json',JSON.stringify(inputs,null,2)+'\n')
 await mkdir('tests/generated',{recursive:true})
-await build({entryPoints:['src/resident-host.mjs','src/settings-store.mjs','src/speech-credentials.mjs',join(pc,'src/device-executable.mjs')],outdir:'tests/generated',bundle:true,format:'esm',platform:'node',target:'node24',banner:{js:"import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);"},plugins:[shared],nodePaths})
+await build({entryPoints:['src/resident-host.mjs','src/settings-store.mjs','src/speech-credentials.mjs',join(pc,'src/device-executable.mjs'),join(pc,'src/speech-details.mjs')],outdir:'tests/generated',bundle:true,format:'esm',platform:'node',target:'node24',banner:{js:"import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);"},plugins:[shared],nodePaths})
 console.log('Built resident Host, optional shared UI, and owned desktop runtime')

@@ -1,6 +1,7 @@
+import { recordSpeechContext, applySpeechContext } from './speech-context.mjs'
 import { randomUUID } from 'node:crypto'
 /** One durable native Session; audio and presenter lifetimes never cancel it. */
-export function createNativeSession(ctx, { settings, binding, installTools = () => () => {}, onError = () => {}, speechInstruction = '', speechPolicy = () => ({ enabled: false }), safeDetails = value => value, createDecoder }) {
+export function createNativeSession(ctx, { settings, binding, installTools = () => () => {}, onError = () => {}, speechInstruction = '', speechPolicy = () => ({ enabled: false }), safeDetails = value => value, createDecoder, asrAgentContext = () => undefined, speechContext }) {
   let id = binding.get().sessionId || undefined, opening, switching = false, bindingUncertain = false, closed = false, attached
   let persona = settings().persona, turn, attempt, pendingPolicy, snapshot = { revision: 0 }
   const policies = new Map()
@@ -55,7 +56,8 @@ export function createNativeSession(ctx, { settings, binding, installTools = () 
       }))
       scoped.push(found.agent.ctx.on('agent/request-context', async (payload, next) => {
         if (payload.agent.id === id && payload.turn !== turn) { turn = payload.turn; persona = settings().persona; policies.set(turn, pendingPolicy ?? speechPolicy(settings())); if (policies.size > 16) policies.delete(policies.keys().next().value) }
-        return next()
+        await next()
+        if (payload.agent.id === id && speechContext) applySpeechContext(payload.agent.session, speechContext.readerFor(payload.agent.session)())
       }))
       scoped.push(installTools(found.agent, () => id))
       const assembly = await found.agent.ctx.systemPrompt.assemble({ scope: found.agent })
@@ -178,6 +180,8 @@ export function createNativeSession(ctx, { settings, binding, installTools = () 
       if (switching) throw Error('ASSISTANT_CONTEXT_BUSY')
       const key = `u:${requestId}`, previous = details.get(key)
       if (source === 'speech' && speechDetails && !previous) retain(key, { message: { id: key, role: 'user', text, source: 'speech' }, details: safeDetails(speechDetails) })
+      const observation = source === 'speech' ? asrAgentContext(speechDetails) : undefined
+      if (observation) recordSpeechContext(attached.session, requestId, text, observation)
       try { return await ctx.sessionController.prompt({ sessionId, requestId, mode: 'queue', content: [{ type: 'text', text }] }, new AbortController().signal) }
       catch (error) { if (!previous) details.delete(key); throw error }
     },
