@@ -26,6 +26,7 @@ const entries={
   '@rabilink/desktop-voice-service/speech-providers':join(pc,'src/speech-providers.mjs'),
   '@rabilink/desktop-voice-service/provider-profiles':join(pc,'src/provider-profiles.mjs'),
   '@rabilink/desktop-voice-service/speech-catalog':join(pc,'src/speech-catalog.mjs'),
+  '@rabilink/desktop-voice-service/settings':join(pc,'src/assistant-settings.mjs'),
   '@rabilink/assistant-runtime/playback':join(sdk,'src/speech-playback.js'),
 }
 const shared={name:'shared-voice-inputs',setup(builder){builder.onResolve({filter:/^@rabilink\//},args=>{if(!entries[args.path])throw Error('Unknown shared import');return {path:resolve(entries[args.path])}})}}

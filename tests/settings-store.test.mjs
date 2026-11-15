@@ -76,3 +76,36 @@ test('draft provider changes keep per-model values until one explicit save', asy
   assert.equal(f.store.read().ttsSampleRate, 16000)
   await f.store.close()
 })
+
+test('shared assistant settings persist and reject invalid favorites', async () => {
+  const f = fixture()
+  const patch = { onboardingComplete: true, assistantName: '小助手', voiceFavorites: JSON.stringify(['volcengine:seed-tts-2.0:voice-a']) }
+  await f.store.save(patch)
+  assert.equal(f.store.read().onboardingComplete, true)
+  assert.equal(f.store.read().assistantName, '小助手')
+  assert.deepEqual(JSON.parse(f.store.read().voiceFavorites), ['volcengine:seed-tts-2.0:voice-a'])
+  for (const voiceFavorites of ['bad-json', '{}', JSON.stringify([1])]) {
+    await assert.rejects(f.store.save({ voiceFavorites }), /ASSISTANT_SETTINGS_INVALID/)
+  }
+  assert.equal(f.writes(), 1)
+  await f.store.close()
+})
+
+test('continuous recognition defaults to end-of-speech detection and allows enabling older profiles', async () => {
+  const f = fixture()
+  assert.equal(f.store.read().asrEndWindowEnabled, true)
+  assert.equal(f.store.read().asrEndWindowSize, 800)
+  await f.store.saveBatch([{ asrMode: 'volcengine' }, { asrEndWindowEnabled: false }])
+  assert.equal(f.store.read().asrEndWindowEnabled, false)
+  await f.store.save({ asrEndWindowEnabled: true })
+  assert.equal(f.store.read().asrEndWindowEnabled, true)
+  await f.store.close()
+})
+
+test('new installs keep the shared caption default and preserve an explicit choice', async () => {
+  const f = fixture()
+  assert.equal(f.store.read().captionsEnabled, false)
+  await f.store.save({ captionsEnabled: true })
+  assert.equal(f.store.read().captionsEnabled, true)
+  await f.store.close()
+})

@@ -1,6 +1,7 @@
 import z from '@deepseek-ai/schemastery'
 import { validateProviderEndpoint } from '@rabilink/desktop-voice-service/provider-profiles'
 import { speechParameterDefinitions, speechSelectionDefinitions } from '@rabilink/desktop-voice-service/speech-catalog'
+import { assistantSettingDefinitions, validateAssistantSettings } from '@rabilink/desktop-voice-service/settings'
 export const defaultPersona = `你是大肥鱼，也叫 DeepSeek 娘，是陪用户聊天、把事情办好的语音助手。
 说话自然、聪明松弛，像熟悉的伙伴。偶尔嘴硬、开个轻巧的玩笑，喜欢寻找省力而可靠的办法；认真办事时清楚、负责，不用“摸鱼”推脱工作。
 优先用适合朗读的短句。先回应当前问题，必要时再解释；不把每次聊天都变成汇报，也不反复追问已经明确的要求。
@@ -52,6 +53,9 @@ function parseSpeechProfiles(value) {
 }
 export const ResidentSettingsSchema = z.object({
   ...speechFields,
+  onboardingComplete: z.boolean().default(assistantSettingDefinitions.onboardingComplete.default),
+  assistantName: z.string().default(assistantSettingDefinitions.assistantName.default),
+  voiceFavorites: z.string().default(assistantSettingDefinitions.voiceFavorites.default),
   persona: z.string().default(defaultPersona), agentPreset: z.string().default(''), cwd: z.string().default(''),
   manageAllWorkspaces: z.boolean().default(true), electronExecutable: z.string().default(''),
   asrMode: z.string().default('native'), asrProviderId: z.string().default(''), asrResourceId: z.string().default(''),
@@ -61,7 +65,7 @@ export const ResidentSettingsSchema = z.object({
   inputDeviceId: z.string().default(''), outputDeviceId: z.string().default(''),
   silenceThreshold: z.number().min(.001).max(1).default(.01), silenceDurationMs: z.number().min(200).max(10000).default(700),
   sampleMs: z.number().min(10).max(1000).default(50), outputEnabled: z.boolean().default(true),
-  captionsEnabled: z.boolean().default(true), captionLocked: z.boolean().default(false), captionSkin: z.string().default('dark'),
+  captionsEnabled: z.boolean().default(assistantSettingDefinitions.captionsEnabled.default), captionLocked: z.boolean().default(false), captionSkin: z.string().default('dark'),
   captionFontSize: z.number().min(16).max(48).default(24), captionOpacity: z.number().min(.15).max(1).default(.85),
   captionPosition: z.string().default('bottom'),
   captionX: z.number().default(0), captionY: z.number().default(0), captionWidth: z.number().min(320).max(4096).default(720),
@@ -70,6 +74,7 @@ export const ResidentSettingsSchema = z.object({
 })
 export function validateResidentSettings(value) {
   const config = ResidentSettingsSchema(value)
+  validateAssistantSettings(config, 'dsh')
   if (!['native','compatible','volcengine'].includes(config.asrMode) || !['compatible','volcengine'].includes(config.ttsProvider) || !['light','dark'].includes(config.captionSkin)
     || !['top','bottom'].includes(config.captionPosition) || config.persona.length > 16000 || config.petId.length > 128) throw Error('ASSISTANT_SETTINGS_INVALID')
   for (const [key, spec] of Object.entries(speechDefinitions)) {

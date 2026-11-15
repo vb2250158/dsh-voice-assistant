@@ -20,7 +20,7 @@ async function command(method,p){
   if(method==='player.stream.create'){await streams.create(p);return true}
   if(method==='player.stream.append'){
     if(typeof p.audio!=='string'||p.audio.length>350000)throw Error('DEVICE_PCM_INVALID')
-    streams.append(p.id,Uint8Array.from(atob(p.audio),c=>c.charCodeAt(0)));return true
+    await streams.append(p.id,Uint8Array.from(atob(p.audio),c=>c.charCodeAt(0)));return true
   }
   if(method==='player.stream.finish'){streams.finish(p.id);return true}
   if(streams.has(p.id)){
