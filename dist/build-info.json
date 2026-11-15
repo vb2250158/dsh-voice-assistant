@@ -27,9 +27,9 @@
         "src/turn-runtime.js": "054234a8c0540457b556fff49f26efc2465027e4387d2e1534e473d7e49c44a9",
         "src/voice-interaction.d.ts": "0d3a1ebecaace8532f48cfee7cb10e37b0f86d3eee322eb49809dddc948ddd6c",
         "src/voice-interaction.js": "5f4ab7e99ed8de160fc2424f36ac74ae2a5f25a4f67fe855a65293db78b06b03",
-        "ui/assistant-panel-styles.js": "66a01a49faf50c5f6f6179e95c22561b08eb5d92aea6ec05d5d7b2def590735f",
+        "ui/assistant-panel-styles.js": "a7826f4a502912b362fe17f3266777f53e0c20837678d30530ff9b34da944c62",
         "ui/assistant-panel.d.ts": "65a814e2ae9928ae3d440c481a7c6849a0bbf0fda9cf150f0992a17e2975354c",
-        "ui/assistant-panel.js": "fca4314c851f255c24d7c0e9b2f331154849a8bf10ed565b97f3badd16060c8a",
+        "ui/assistant-panel.js": "4dbe233a663ebb52224ac885da6ce4ae560a927a2d4e1f8db930a7a34882e0a0",
         "ui/message-details.js": "cc20964c8fec660140c9beaf885862f49a98fb4b79a415258d95d5d87f1bc641"
       }
     },
@@ -84,5 +84,5 @@
     }
   },
   "hostSha256": "80e19754f52b78d82ed820716125226505dbf41dd0aef11d56faaf325e1e87c5",
-  "clientSha256": "8f050444639004016c5515353b0935343c90315b997d32e54bda233a307c2229"
+  "clientSha256": "e683eda97b6539a497b49a61d5b21fe996daacc0da11df2b94157d72e4615378"
 }
