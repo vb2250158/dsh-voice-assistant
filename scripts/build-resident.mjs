@@ -2,6 +2,7 @@ import {createRequire} from 'node:module'
 import {readFile,writeFile,mkdir,cp,readdir} from 'node:fs/promises'
 import {join,resolve} from 'node:path'
 import {createHash} from 'node:crypto'
+const clientOnly=process.argv.includes('--client-only')
 const require=createRequire(import.meta.url)
 const {build}=require(process.env.VOICE_ESBUILD_PATH||'esbuild')
 const sdk=process.env.DSH_SHARED_ASSISTANT_ROOT,pc=process.env.DSH_DESKTOP_SERVICE_ROOT
@@ -13,7 +14,13 @@ async function snapshot(root,folders){
   for(const folder of folders)await walk(folder)
   return {name:pkg.name,version:pkg.version,files}
 }
-const inputs={sdk:await snapshot(sdk,['src','ui']),desktop:await snapshot(pc,['src','runtime'])}
+const previous=clientOnly?JSON.parse(await readFile('sdk-snapshot.json','utf8')):undefined
+const inputs={sdk:await snapshot(sdk,['src','ui']),desktop:clientOnly?previous.desktop:await snapshot(pc,['src','runtime'])}
+if(clientOnly){
+  const oldSource=Object.fromEntries(Object.entries(previous.sdk.files).filter(([file])=>file.startsWith('src/')))
+  const nextSource=Object.fromEntries(Object.entries(inputs.sdk.files).filter(([file])=>file.startsWith('src/')))
+  if(Object.keys(oldSource).length!==Object.keys(nextSource).length||Object.entries(oldSource).some(([file,hash])=>nextSource[file]!==hash))throw Error('Client-only build requires unchanged shared Host sources; run the full build for SDK source changes')
+}
 if(inputs.sdk.name!=='@rabilink/assistant-runtime'||inputs.sdk.version!=='0.13.1'||inputs.desktop.name!=='@rabilink/desktop-voice-service'||inputs.desktop.version!=='0.3.1')throw Error('Unexpected shared input')
 const entries={
   '@rabilink/assistant-runtime/resident':join(sdk,'src/resident-interaction.js'),
@@ -35,18 +42,22 @@ const entries={
 const shared={name:'shared-voice-inputs',setup(builder){builder.onResolve({filter:/^@rabilink\//},args=>{if(!entries[args.path])throw Error('Unknown shared import');return {path:resolve(entries[args.path])}})}}
 const nodePaths=(process.env.VOICE_BUILD_NODE_PATHS||'').split(';').filter(Boolean)
 await mkdir('dist',{recursive:true})
-await build({entryPoints:['src/resident-entry.mjs'],outfile:'dist/index.js',bundle:true,format:'esm',platform:'node',target:'node24',external:['@deepseek-ai/*','koffi','ws'],plugins:[shared],nodePaths,minifyWhitespace:true,legalComments:'none'})
+if(!clientOnly)await build({entryPoints:['src/resident-entry.mjs'],outfile:'dist/index.js',bundle:true,format:'esm',platform:'node',target:'node24',external:['@deepseek-ai/*','koffi','ws'],plugins:[shared],nodePaths,minifyWhitespace:true,legalComments:'none'})
 const client=await build({entryPoints:['src/resident-client.mjs'],bundle:true,format:'cjs',platform:'browser',target:'es2022',write:false,
   external:['react','@deepseek-ai/dsh-*'],plugins:[shared],nodePaths,minifyWhitespace:true,legalComments:'none'})
 await writeFile('dist/client.js',`window.__ModuleLoader__.load({id:'dsh-voice-assistant',factory:(require)=>{var module={exports:{}};var exports=module.exports;\n${client.outputFiles[0].text}\nreturn module.exports;}});\n`)
+if(!clientOnly){
 await cp(join(pc,'runtime'),'runtime',{recursive:true})
 // Keep copied text reproducible when the shared checkout uses Windows line endings.
 for(const file of ['caption.css','caption.js','main.cjs']){
   const path=join('runtime',file),content=await readFile(path,'utf8')
   if(content.includes('\r\n'))await writeFile(path,content.replace(/\r\n/g,'\n'))
 }
+}
 await writeFile('dist/build-info.json',JSON.stringify({schemaVersion:2,inputs,hostSha256:sha(await readFile('dist/index.js')),clientSha256:sha(await readFile('dist/client.js'))},null,2)+'\n')
 await writeFile('sdk-snapshot.json',JSON.stringify(inputs,null,2)+'\n')
+if(!clientOnly){
 await mkdir('tests/generated',{recursive:true})
 await build({entryPoints:['src/resident-host.mjs','src/settings-store.mjs','src/speech-credentials.mjs',join(pc,'src/device-executable.mjs'),join(pc,'src/speech-details.mjs'),join(pc,'src/services.mjs'),join(pc,'src/caption-progress.mjs'),join(sdk,'src/voice-interaction.js')],outdir:'tests/generated',bundle:true,format:'esm',platform:'node',target:'node24',banner:{js:"import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);"},plugins:[shared],nodePaths})
-console.log('Built resident Host, optional shared UI, and owned desktop runtime')
+}
+console.log(clientOnly?'Built shared UI; existing Host and desktop runtime unchanged':'Built resident Host, optional shared UI, and owned desktop runtime')

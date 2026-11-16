@@ -29,10 +29,11 @@
         "src/turn-runtime.js": "4bc066c3bd20542dc4b7cb739aefc73565f0453922a8a290276fab342385b4a0",
         "src/voice-interaction.d.ts": "91905988eedf6c67c40c44fd4c1c1a94ffb1151b5a2e59acfb590dcdb8662482",
         "src/voice-interaction.js": "2efba5cafe19f5916b1a454eac151ad310bef518c41a51f4dcf899ed2088e5d1",
-        "ui/assistant-panel-styles.js": "d4bbb1f77c0b315617f6220e961300b5cba12f06b6cd82599ddda1da8a3fa0c2",
-        "ui/assistant-panel.d.ts": "65a814e2ae9928ae3d440c481a7c6849a0bbf0fda9cf150f0992a17e2975354c",
-        "ui/assistant-panel.js": "0bbe1c5b12e0e885e03c97a516d4f35bced24223cff8ad36d455d73a3cec2aa1",
+        "ui/assistant-panel-styles.js": "57aeae4c5081989bf5b1de591464f4e63a916744a794386724fb71704eb992aa",
+        "ui/assistant-panel.d.ts": "ec4b6b3f306a32677d079efdfbbb0228a36289f0676f6803c722179b1b510e1b",
+        "ui/assistant-panel.js": "8ca6b2b1c63444703bc8e958f4d542b2ade9e58405163c73986b538934db7be9",
         "ui/message-details.js": "cc20964c8fec660140c9beaf885862f49a98fb4b79a415258d95d5d87f1bc641",
+        "ui/message-presentation.js": "a8e0b1f424173d484acea08b8a678ce6406f0e1fb172b353ec545e371384998b",
         "ui/speech-capability-help.js": "4bf3a1d92d283aa5de2b14e294663101e8abac8c639cb252dd4d70b637715158",
         "ui/speech-capability-help.json": "86de7da7de106344065ff3b9b078c19ef84667d8a68bef6e4cff49d36d3d52fd"
       }
@@ -93,5 +94,5 @@
     }
   },
   "hostSha256": "c9292ff50448ad460ba1e3381e99a7df11cf962cd35381379a5d55b51cc11452",
-  "clientSha256": "8bd51dd003d5fe6c32471e963f40dd8e30c8c1ddc159f3e5640940855ca1dade"
+  "clientSha256": "c30e13a1269848db382a964322b32d1db2cc203cf22329fb85fd8a2d898f82de"
 }
