@@ -1,3 +1,4 @@
+"use strict";
 (() => {
   // runtime/recording.ts
   function encodeWave(samples) {
@@ -297,6 +298,9 @@
     const item = players.get(id);
     if (!item) return;
     players.delete(id);
+    item.stopped = true;
+    item.playing = false;
+    item.audio.onplaying = item.audio.ontimeupdate = item.audio.onended = item.audio.onerror = null;
     item.audio.pause();
     item.audio.removeAttribute("src");
     item.audio.load();
@@ -352,19 +356,47 @@
         URL.revokeObjectURL(url);
         throw error;
       }
-      audio.onended = () => send({ event: "player.ended", id: p.id });
-      audio.onerror = () => send({ event: "player.error", id: p.id });
-      players.set(p.id, { audio, url });
+      const item = { audio, url, stopped: false, playing: false };
+      const current = () => players.get(p.id) === item && !item.stopped;
+      const progress = () => {
+        if (current() && item.playing && Number.isFinite(audio.currentTime) && audio.currentTime >= 0) send({ event: "player.progress", id: p.id, seconds: audio.currentTime });
+      };
+      audio.onplaying = () => {
+        if (!current()) return;
+        item.playing = true;
+        progress();
+      };
+      audio.ontimeupdate = progress;
+      audio.onended = () => {
+        if (!current()) return;
+        progress();
+        item.stopped = true;
+        item.playing = false;
+        send({ event: "player.ended", id: p.id });
+      };
+      audio.onerror = () => {
+        if (!current()) return;
+        item.stopped = true;
+        item.playing = false;
+        send({ event: "player.error", id: p.id });
+      };
+      players.set(p.id, item);
       return true;
     }
     if (method === "player.play") {
       const item = players.get(p.id);
       if (!item) throw Error("DEVICE_PLAYER_MISSING");
+      item.stopped = false;
       await item.audio.play();
       return true;
     }
     if (method === "player.stop") {
-      players.get(p.id)?.audio.pause();
+      const item = players.get(p.id);
+      if (item) {
+        item.stopped = true;
+        item.playing = false;
+        item.audio.pause();
+      }
       return true;
     }
     if (method === "player.dispose") {

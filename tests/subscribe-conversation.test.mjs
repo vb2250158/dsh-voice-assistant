@@ -9,7 +9,7 @@ test('lists an existing Session before retaining and releases the projection', a
   let finishListing
   const pending = new Promise(resolve => { finishListing = resolve })
   const source = { getSnapshot: () => ({ order: [], nodes: new Map() }), subscribe() { calls.push('subscribe'); return () => calls.push('unsubscribe') } }
-  const ctx = { sessions: { ensureListed(id) { calls.push('list:' + id); return pending }, retain(id) { calls.push('retain:' + id); return { ready: Promise.resolve('binding'), release() { calls.push('release') } } } }, uiConversation: { binding() { return { target: () => source } } } }
+  const ctx = { sessions: { ensureListed(id) { calls.push('list:' + id); return pending }, retain(id) { calls.push('retain:' + id); return { ready: Promise.resolve('binding'), release() { calls.push('release') } } } }, uiConversation: { binding() { return { target: name => name==='chat'?source:{getSnapshot:()=>undefined,subscribe:()=>()=>{}} } } } }
   const dispose = subscribeConversation(ctx, 'existing', value => received.push(value), error => errors.push(error))
   assert.deepEqual(calls, ['list:existing'])
   finishListing(true); await flush()
@@ -38,11 +38,22 @@ test('details index updates an existing native message and detaches on close',as
   let updateIndex,unsubscribed=false,index=new Set()
   const node={key:'key',kind:'user',visibility:'visible',data:{content:[{type:'text',text:'你好'}],source:{rpcId:'request-1234'}}}
   const source={getSnapshot:()=>({order:['key'],nodes:new Map([['key',node]])}),subscribe:()=>()=>{}}
-  const ctx={sessions:{ensureListed:async()=>true,retain:()=>({ready:Promise.resolve('binding'),release(){}})},uiConversation:{binding:()=>({target:()=>source})}}
+  const ctx={sessions:{ensureListed:async()=>true,retain:()=>({ready:Promise.resolve('binding'),release(){}})},uiConversation:{binding:()=>({target:name=>name==='chat'?source:{getSnapshot:()=>undefined,subscribe:()=>()=>{}}})}}
   const received=[]
   const stop=subscribeConversation(ctx,'existing',value=>received.push(value),error=>{throw error},undefined,()=>index,fn=>{updateIndex=fn;return()=>{unsubscribed=true}})
   await flush();assert.equal(received.at(-1)[0].hasDetails,undefined)
   index=new Set(['u:request-1234']);updateIndex()
   assert.equal(received.at(-1)[0].hasDetails,true)
   stop();assert.equal(unsubscribed,true)
+})
+test('native trajectory updates details availability and releases both subscriptions',async()=>{
+ let changed,off=0,lastTrajectory
+ const node={key:'key',kind:'assistant-step',visibility:'visible',data:{turn:2,step:1,blocks:[{kind:'text',text:'回答'}]}}
+ const chat={getSnapshot:()=>({order:['key'],nodes:new Map([['key',node]])}),subscribe:()=>()=>off++}
+ const trajectory={getSnapshot:()=>({requests:[],eventNodes:[],runningCalls:[]}),subscribe:fn=>{changed=fn;return()=>off++}}
+ const ctx={sessions:{ensureListed:async()=>true,retain:()=>({ready:Promise.resolve('binding'),release(){}})},uiConversation:{binding:()=>({target:name=>name==='chat'?chat:trajectory})}}
+ const received=[]
+ const stop=subscribeConversation(ctx,'session',value=>received.push(value),error=>{throw error},undefined,undefined,undefined,value=>{lastTrajectory=value})
+ await flush();assert.equal(received.at(-1)[0].hasDetails,true);assert.ok(lastTrajectory)
+ changed();assert.equal(received.length,2);stop();assert.equal(off,2);assert.equal(lastTrajectory,undefined)
 })

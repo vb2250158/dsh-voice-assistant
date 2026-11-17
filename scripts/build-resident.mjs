@@ -21,7 +21,7 @@ if(clientOnly){
   const nextSource=Object.fromEntries(Object.entries(inputs.sdk.files).filter(([file])=>file.startsWith('src/')))
   if(Object.keys(oldSource).length!==Object.keys(nextSource).length||Object.entries(oldSource).some(([file,hash])=>nextSource[file]!==hash))throw Error('Client-only build requires unchanged shared Host sources; run the full build for SDK source changes')
 }
-if(inputs.sdk.name!=='@rabilink/assistant-runtime'||inputs.sdk.version!=='0.13.1'||inputs.desktop.name!=='@rabilink/desktop-voice-service'||inputs.desktop.version!=='0.3.1')throw Error('Unexpected shared input')
+if(inputs.sdk.name!=='@rabilink/assistant-runtime'||inputs.sdk.version!=='0.13.1'||inputs.desktop.name!=='@rabilink/desktop-voice-service'||inputs.desktop.version!=='0.3.2')throw Error('Unexpected shared input')
 const entries={
   '@rabilink/assistant-runtime/resident':join(sdk,'src/resident-interaction.js'),
   '@rabilink/assistant-runtime/aiui':join(sdk,'src/aiui-runtime.js'),

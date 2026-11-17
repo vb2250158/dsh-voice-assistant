@@ -3,6 +3,7 @@ import { Button, Input, IconMicrophoneOutlineRegular } from '@deepseek-ai/dsh-cl
 import { createAssistantPanel } from '@rabilink/assistant-runtime/ui'
 import { createSpeechExpressionDecoder } from '@rabilink/assistant-runtime/voice'
 import { subscribeConversation } from './subscribe-conversation.mjs'
+import { projectNativeActivity, projectNativeExecution } from './native-execution-projection.mjs'
 const namespace='dsh-voice-assistant'
 const deviceErrors = {
   DEVICE_ELECTRON_NOT_FOUND:'未找到 Electron。请在设置 → 进阶填写已安装的 electron.exe 绝对路径并保存；留空只查当前 DSH Home。',
@@ -21,15 +22,32 @@ export function apply(ctx) {
     if(!response.ok)throw Error(deviceErrors[result.error]||result.error||'ASSISTANT_CONNECTION_FAILED')
     return result
   }
-  let index = new Set(), indexKey = ''
+  let index = new Set(), indexKey = '', trajectory, trajectorySession, activeSubscription, currentSession, visibleMessages = new Map()
   const indexListeners = new Set()
   const adapter={read:async()=>{
     const state=await request(), next=Array.isArray(state.messageDetailsIndex)?state.messageDetailsIndex:[]
     const key=JSON.stringify(next)
     if(key!==indexKey){indexKey=key;index=new Set(next);for(const listener of indexListeners)listener()}
-    return state
-  },command:request,subscribeConversation:(sessionId,onMessages,onError)=>
-    subscribeConversation(ctx,sessionId,onMessages,onError,createSpeechExpressionDecoder,()=>index,listener=>{indexListeners.add(listener);return()=>indexListeners.delete(listener)})}
+    currentSession=state.sessionId
+    const activity=projectNativeActivity(trajectorySession===currentSession?trajectory:undefined)
+    return activity?{...state,activity}:state
+  },command:async body=>{
+    if(body?.action!=='message-details')return request(body)
+    const execution=projectNativeExecution(trajectorySession===currentSession?trajectory:undefined,body.messageId)
+    let details
+    try{details=await request(body)}catch(error){
+      if(error.message!=='ASSISTANT_MESSAGE_DETAILS_UNAVAILABLE'||!execution)throw error
+      const message=visibleMessages.get(body.messageId)
+      if(!message)throw error
+      details={message:{id:message.id,role:message.role,text:message.text}}
+    }
+    return execution?{...details,execution}:details
+  },subscribeConversation:(sessionId,onMessages,onError)=>{
+    const subscription={}
+    activeSubscription=subscription; trajectory=undefined; trajectorySession=sessionId; visibleMessages.clear()
+    const stop=subscribeConversation(ctx,sessionId,value=>{if(activeSubscription!==subscription)return;visibleMessages=new Map(value.map(item=>[item.id,item]));onMessages(value)},error=>{if(activeSubscription===subscription)onError(error)},createSpeechExpressionDecoder,()=>index,listener=>{indexListeners.add(listener);return()=>indexListeners.delete(listener)},value=>{if(activeSubscription!==subscription)return;trajectory=value;if(!value)visibleMessages.clear()})
+    return ()=>{stop();if(activeSubscription===subscription){activeSubscription=undefined;trajectory=undefined;trajectorySession=undefined;visibleMessages.clear()}}
+  }}
   const SettingsPage=({title,onClose,children})=>React.createElement('div',null,
     React.createElement('header',{style:{display:'flex',alignItems:'center',gap:12}},React.createElement(Button,{onClick:onClose},t('back')),React.createElement('h2',null,title)),children)
   const Panel=createAssistantPanel(React,{Button,Input,Modal:SettingsPage,settingsPresentation:'page'})

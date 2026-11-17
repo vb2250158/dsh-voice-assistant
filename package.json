@@ -1,6 +1,6 @@
 {
   "name": "dsh-voice-assistant",
-  "version": "0.1.25",
+  "version": "0.1.26",
   "private": true,
   "type": "module",
   "files": [
@@ -46,19 +46,19 @@
   "peerDependencies": {
     "@deepseek-ai/cordis": "4.1.0",
     "@deepseek-ai/dsh-api-session-controller": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-connection": "0.2.2-rc.1",
     "@deepseek-ai/dsh-client-locale": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-conversation": "0.2.2-rc.1",
     "@deepseek-ai/dsh-client-ui-primitives": "0.2.2-rc.1",
     "@deepseek-ai/dsh-client-ui-renderer": "0.2.2-rc.1",
     "@deepseek-ai/dsh-client-ui-sidebar": "0.2.2-rc.1",
     "@deepseek-ai/dsh-client-ui-slots": "0.2.2-rc.1",
-    "@deepseek-ai/dsh-settings": "0.2.2-rc.1",
-    "@deepseek-ai/schemastery": "3.19.0",
-    "react": "^18.2.0",
-    "@deepseek-ai/dsh-client-ui-conversation": "0.2.2-rc.1",
     "@deepseek-ai/dsh-credentials": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-settings": "0.2.2-rc.1",
     "@deepseek-ai/dsh-storage-domain": "0.2.2-rc.1",
     "@deepseek-ai/dsh-tools": "0.2.2-rc.1",
-    "@deepseek-ai/dsh-client-connection": "0.2.2-rc.1"
+    "@deepseek-ai/schemastery": "3.19.0",
+    "react": "^18.2.0"
   },
   "devDependencies": {
     "@deepseek-ai/schemastery": "^3.18.5-alpha.1",
@@ -70,6 +70,9 @@
   "license": "MIT",
   "dependencies": {
     "koffi": "3.1.1",
-    "ws": "8.18.3"
+    "ws": "8.23.0"
+  },
+  "overrides": {
+    "zod": "4.6.7"
   }
 }
