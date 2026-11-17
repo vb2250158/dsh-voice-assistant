@@ -8,7 +8,7 @@ const React=require('react'),renderer=require('react-test-renderer')
 test('built shared presenter uses native history and closing it never stops Host audio',async()=>{
   const calls=[],slots=new Map();let descriptor,released=0,created=0,notifyConversation
   let conversationSnapshot={order:['history'],nodes:new Map([['history',{key:'history',kind:'assistant-step',visibility:'visible',data:{blocks:[{kind:'text',text:'durable answer'}]}}]])}
-  const state={sessionId:'owned-session',selectedModel:{provider:'test',model:'test-model'},capabilities:{host:'dsh',hostModels:[{provider:'test',model:'test-model',label:'Test model',providerLabel:'Test'}]},voice:{phase:'running',capture:'listening',outputEnabled:true},presentation:{statusText:'正在聆听'},
+  const state={sessionId:'owned-session',selectedModel:{provider:'test',model:'test-model'},capabilities:{host:'dsh',textInput:true,hostModels:[{provider:'test',model:'test-model',label:'Test model',providerLabel:'Test'}]},voice:{phase:'running',capture:'listening',outputEnabled:true},presentation:{statusText:'正在聆听'},
     settings:{persona:'editable',asrMode:'native',ttsEndpoint:'https://tts.example/',captionSkin:'dark'},credentials:{asr:{},tts:{}},pet:{available:false}}
   const window={__ModuleLoader__:{load(value){descriptor=value}}}
   const script=await readFile(new URL('../dist/client.js',import.meta.url),'utf8')

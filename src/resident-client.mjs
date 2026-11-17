@@ -3,6 +3,7 @@ import { Button, Input, IconMicrophoneOutlineRegular } from '@deepseek-ai/dsh-cl
 import { createAssistantPanel } from '@rabilink/assistant-runtime/ui'
 import { createSpeechExpressionDecoder } from '@rabilink/assistant-runtime/voice'
 import { subscribeConversation } from './subscribe-conversation.mjs'
+import { projectCanvasHistory } from './canvas-history.mjs'
 import { projectNativeActivity, projectNativeExecution } from './native-execution-projection.mjs'
 const namespace='dsh-voice-assistant'
 const deviceErrors = {
@@ -45,7 +46,7 @@ export function apply(ctx) {
   },subscribeConversation:(sessionId,onMessages,onError)=>{
     const subscription={}
     activeSubscription=subscription; trajectory=undefined; trajectorySession=sessionId; visibleMessages.clear()
-    const stop=subscribeConversation(ctx,sessionId,value=>{if(activeSubscription!==subscription)return;visibleMessages=new Map(value.map(item=>[item.id,item]));onMessages(value)},error=>{if(activeSubscription===subscription)onError(error)},createSpeechExpressionDecoder,()=>index,listener=>{indexListeners.add(listener);return()=>indexListeners.delete(listener)},value=>{if(activeSubscription!==subscription)return;trajectory=value;if(!value)visibleMessages.clear()})
+    const stop=subscribeConversation(ctx,sessionId,value=>{if(activeSubscription!==subscription)return;visibleMessages=new Map(value.map(item=>[item.id,item]));onMessages(value)},error=>{if(activeSubscription===subscription)onError(error)},createSpeechExpressionDecoder,()=>index,listener=>{indexListeners.add(listener);return()=>indexListeners.delete(listener)},value=>{if(activeSubscription!==subscription)return;trajectory=value;if(!value)visibleMessages.clear()},projectCanvasHistory)
     return ()=>{stop();if(activeSubscription===subscription){activeSubscription=undefined;trajectory=undefined;trajectorySession=undefined;visibleMessages.clear()}}
   }}
   const SettingsPage=({title,onClose,children})=>React.createElement('div',null,

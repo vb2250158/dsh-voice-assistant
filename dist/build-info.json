@@ -27,22 +27,25 @@
         "src/speech-playback.js": "209a4f3611533ef725e567bad3ed8e0708c75a65690923b9362f4c2c9c88f409",
         "src/turn-runtime.d.ts": "f4732eaad0da395e0507a485ab3f8cb572c345fcb49a6b5e10d2d4f99351e5fd",
         "src/turn-runtime.js": "27a5cdc95ec573a8a2fc70051b435668ba0ed1ba5ec6aaed44870deb1f194fe7",
+        "src/visual-canvas.d.ts": "b12c956f8a00427e8165cc1673bf52b0eb53d87abb65b1477a875df1cce0b0c0",
+        "src/visual-canvas.js": "691e1bec0343e6bc153cce689f79ed3e3f5e4ee99dd4f9394d8c9ffffa0edff1",
         "src/voice-interaction.d.ts": "91905988eedf6c67c40c44fd4c1c1a94ffb1151b5a2e59acfb590dcdb8662482",
         "src/voice-interaction.js": "2efba5cafe19f5916b1a454eac151ad310bef518c41a51f4dcf899ed2088e5d1",
         "ui/assistant-panel-styles.js": "7eb98f05d105d15541b49e637a799e69359811a9c5478b464a41ed1a29d4201f",
-        "ui/assistant-panel.d.ts": "9829362d3ff28be3c56405a623fdb873abf81b239b1c95c1d298bf705281e67b",
-        "ui/assistant-panel.js": "b8db9395608d371ff73281c88b0b74d9bb07fd78e0d990bb1037af0c011159f3",
+        "ui/assistant-panel.d.ts": "399faf560321c37f495ef3684ba14d0ec6422547e105e13a7645b6f99ae3ee2c",
+        "ui/assistant-panel.js": "1cf1b12d0489ace3a81a432b1fe5901e194009eaea47e93ad5dd09058917ef74",
         "ui/message-details.js": "1fa94000c4ac686478a9979159c8905c847338572d3ab18cd686f47826c65f86",
         "ui/message-presentation.js": "a8e0b1f424173d484acea08b8a678ce6406f0e1fb172b353ec545e371384998b",
         "ui/speech-capability-help.js": "4bf3a1d92d283aa5de2b14e294663101e8abac8c639cb252dd4d70b637715158",
-        "ui/speech-capability-help.json": "86de7da7de106344065ff3b9b078c19ef84667d8a68bef6e4cff49d36d3d52fd"
+        "ui/speech-capability-help.json": "86de7da7de106344065ff3b9b078c19ef84667d8a68bef6e4cff49d36d3d52fd",
+        "ui/visual-canvas-panel.js": "4c1d6aacaa740cc6270d8bfe3beeabdfc2dcc91cec72360b6119373283fa2b8f"
       }
     },
     "desktop": {
       "name": "@rabilink/desktop-voice-service",
       "version": "0.3.2",
       "files": {
-        "src/assistant-host.mjs": "1f9d7bb957b7be97e3aa7869e85f7c6b6c0e3b52835af368283e46090fbbd35b",
+        "src/assistant-host.mjs": "2b58264beb493a4d0867ed0da3d7251540195ef2becc8bbff5457ebfa922d8e8",
         "src/assistant-settings.mjs": "bf92383529e3811d329393b2ff31856f944c089acb41a58c4a22ebdfda9a1dff",
         "src/caption-progress.mjs": "1e8b2c53add4f4d017299d815c8a1cfbd52f74307a7e6c49c60279b909c2dbb7",
         "src/chat-model.mjs": "1e93a50e0a968085b77c0c76a515238b790e33ba74b6a898bb6abf228073e81c",
@@ -80,12 +83,17 @@
         "src/windows-secrets.mjs": "1cc46c476570c6fbfe834a4441b7c6aa4cbb1042e543396f5f098c02c29bf100",
         "src/workbuddy-cli.mjs": "b5ae47c5375f115a933262b3a47ceb93c1e844e466aaf58d3587ed5d51f6af9e",
         "runtime/audio.html": "72de16bd298f5b853bb6eac2841d554fce1930ac2aed025f31ab6d5afdc6192e",
+        "runtime/canvas-presenter.cjs": "a64b283aad600ff73bd6567c9251e6a952f3d7871f376834eb9c8780917b6378",
+        "runtime/canvas.css": "ce570b2557f784a556396d4b9808d08a7ff230ff84791a446acf2b31b8077fcd",
+        "runtime/canvas.html": "1380b9c69b1beda7bc5d461e8b4fe6c79e2f545620f4db15c5eb488fb8525071",
+        "runtime/canvas.js": "f4164ed3446a72e1ce0fc2e851efed64b28221a606bb0d036b7f520ed8785a8f",
+        "runtime/canvas.mjs": "6a88943c15f8e900cb597bc9241c2e31d18d284596eb5e377b7cc1f39b2e5e91",
         "runtime/caption.css": "0a45bd6bf380fdb378748ca21ac86af2b831f95c43c818e4dc5608381a8e8f7f",
         "runtime/caption.html": "9fc17c68b3e389c8e082ab458f775fb872ae1b79642b86d4f0f8cbe0502905a9",
         "runtime/caption.js": "0490466f624a3814f637b1bbcbe6b29ebf9f3922bf8d7f63f88b5d196594b1e0",
         "runtime/capture-worklet.js": "621d07f6507688d1ae35234fc9b6f507528b9331d5837270e74fe2375399270d",
         "runtime/capture.mjs": "f076290e854c75c89622ad686bf14ddaee97a8b9ef9d82547742751989f8a75b",
-        "runtime/main.cjs": "65906b43a3454cfea66762c88d9e258b71927f8a778d88c8f8e0a2e2bdf6a7bf",
+        "runtime/main.cjs": "58802c5840bc4e04d03933b5456fdea765ad2e3fba9cdf16cbf5d22ee569f6b0",
         "runtime/preload.cjs": "09649755a15734d8b1533e0937d6de5c9e39afef93b11167df1c65b6375204fa",
         "runtime/recording.ts": "0ca7c43c009a8d1f909a53475181af0ec103542ef1c88e8649288f81e56193d2",
         "runtime/renderer.js": "030209e576f0454263983f8b2bee31cacd4735abc6afb0366ab0db1b45049925",
@@ -95,6 +103,6 @@
       }
     }
   },
-  "hostSha256": "8874b34858f12e402f806dde18e7ede1ab9e99fb913bb9ed3490aa6376bf83b5",
-  "clientSha256": "f9148047b4b4e8638e6666b7cb5d88279c975d6eac3803eaaea18c25a56ed32b"
+  "hostSha256": "01faa3f25cb8c78ecd375cbc77e97e0a72b5fe7cfd7a43ad8bd419bbc0670f2c",
+  "clientSha256": "ec8a1f1be0ae7c48a24c901f85b7e1e0a28a7365df2adece98261e2f2050297a"
 }

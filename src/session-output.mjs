@@ -1,5 +1,5 @@
 /** Project new native Session text into shared voice response tokens. */
-export function observeSessionOutput({ eventSource, voice, onError, onText = () => {}, createDecoder, speechPolicy = () => ({ enabled: false }) }) {
+export function observeSessionOutput({ eventSource, voice, onError, onText = () => {}, onCanvas = () => {}, createDecoder, speechPolicy = () => ({ enabled: false }) }) {
   let closed = false
   let revision = eventSource.getSnapshot().revision
   const responses = new Map()
@@ -25,6 +25,7 @@ export function observeSessionOutput({ eventSource, voice, onError, onText = () 
     if (snapshot.revision === revision) return
     revision = snapshot.revision
     const change = snapshot.change
+    if (change.kind === 'canvas') { onCanvas(change.value); return }
     if (change.kind === 'settle-assistant') {
       const key = String(change.attemptId)
       const event = change.entry?.event

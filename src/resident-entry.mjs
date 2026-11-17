@@ -12,6 +12,7 @@ import { createResidentHost } from './resident-host.mjs'
 import { volcanoAsrParameters } from '@rabilink/desktop-voice-service/speech-catalog'
 import { createAsrMigration } from './asr-migration.mjs'
 import { speechContextProjection } from './speech-context.mjs'
+import { canvasProjection } from './canvas-native.mjs'
 import { installNativeManagement } from './native-management.mjs'
 
 export const name = 'dsh-voice-assistant'
@@ -40,6 +41,7 @@ async function readCommand(request) {
 export async function apply(ctx, config) {
   ctx.effect(() => ctx.settings.configure({ auto: false }, ctx.fiber))
   const speechContext = await ctx.sessionProjections.register(speechContextProjection)
+  const canvasContext = await ctx.sessionProjections.register(canvasProjection)
   const domain = await ctx.storageDomain.open(domainSpec)
   let disposed = false, settingsUrl, store, host, unregister, migration
   // Register cleanup immediately after acquisition, including partially failed initialization.
@@ -63,7 +65,7 @@ export async function apply(ctx, config) {
   migration = createAsrMigration({ store, ledger:domain.table('migrations'), fields:volcanoAsrParameters })
   ctx.on('settings/document-updated', ns => { if (ns === namespace && !disposed) void migration.run().catch(error => diagnose('asr-migration', error)) })
   const saveSettings = store.save
-  host = createResidentHost({ ctx, speechContext, settings, saveSettings, previewSettings: store.preview, saveSettingsBatch: store.saveBatch, diagnose, binding: domain.global, deviceFactory: openDesktopDevice, speech: optionalNativeSpeech(ctx), pet: optionalPetPresenter(ctx),
+  host = createResidentHost({ ctx, speechContext, canvasContext, defineTool, settings, saveSettings, previewSettings: store.preview, saveSettingsBatch: store.saveBatch, diagnose, binding: domain.global, deviceFactory: openDesktopDevice, speech: optionalNativeSpeech(ctx), pet: optionalPetPresenter(ctx),
     credentials: createSpeechCredentials(ctx.credentials, credentialKey),
     installTools: agent => installNativeManagement({ ctx, agent, settings, ledger: domain.table('requests'), defineTool }),
     openSettings: () => { if (!settingsUrl) throw Error('ASSISTANT_SETTINGS_URL_UNAVAILABLE'); return host.openSettings(settingsUrl) },

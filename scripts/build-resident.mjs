@@ -24,6 +24,7 @@ if(clientOnly){
 if(inputs.sdk.name!=='@rabilink/assistant-runtime'||inputs.sdk.version!=='0.13.1'||inputs.desktop.name!=='@rabilink/desktop-voice-service'||inputs.desktop.version!=='0.3.2')throw Error('Unexpected shared input')
 const entries={
   '@rabilink/assistant-runtime/resident':join(sdk,'src/resident-interaction.js'),
+  '@rabilink/assistant-runtime/canvas':join(sdk,'src/visual-canvas.js'),
   '@rabilink/assistant-runtime/aiui':join(sdk,'src/aiui-runtime.js'),
   '@rabilink/assistant-runtime/ui':join(sdk,'ui/assistant-panel.js'),
   '@rabilink/desktop-voice-service/node':join(pc,'src/node-device.mjs'),
@@ -58,6 +59,6 @@ await writeFile('dist/build-info.json',JSON.stringify({schemaVersion:2,inputs,ho
 await writeFile('sdk-snapshot.json',JSON.stringify(inputs,null,2)+'\n')
 if(!clientOnly){
 await mkdir('tests/generated',{recursive:true})
-await build({entryPoints:['src/resident-host.mjs','src/settings-store.mjs','src/speech-credentials.mjs',join(pc,'src/device-executable.mjs'),join(pc,'src/speech-details.mjs'),join(pc,'src/services.mjs'),join(pc,'src/caption-progress.mjs'),join(sdk,'src/voice-interaction.js')],outdir:'tests/generated',bundle:true,format:'esm',platform:'node',target:'node24',banner:{js:"import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);"},plugins:[shared],nodePaths})
+await build({entryPoints:['src/canvas-native.mjs','src/canvas-history.mjs','src/resident-host.mjs','src/settings-store.mjs','src/speech-credentials.mjs',join(pc,'src/device-executable.mjs'),join(pc,'src/speech-details.mjs'),join(pc,'src/services.mjs'),join(pc,'src/caption-progress.mjs'),join(sdk,'src/voice-interaction.js')],outdir:'tests/generated',bundle:true,format:'esm',platform:'node',target:'node24',banner:{js:"import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);"},plugins:[shared],nodePaths})
 }
 console.log(clientOnly?'Built shared UI; existing Host and desktop runtime unchanged':'Built resident Host, optional shared UI, and owned desktop runtime')

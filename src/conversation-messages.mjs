@@ -1,12 +1,13 @@
 /** Render only public Chat nodes, in the order supplied by the native projection. */
-export function conversationMessages(snapshot, limit, createDecoder, detailIndex = new Set()) {
+export function conversationMessages(snapshot, limit, createDecoder, detailIndex = new Set(), canvasHistory = new Map()) {
   if (!snapshot) return []
   const seen = new Set(), messages = []
   for (const key of snapshot.order) {
     if (seen.has(key)) continue
     seen.add(key)
     const node = snapshot.nodes.get(key)
-    if (node?.visibility !== 'visible') continue
+    const canvasOnly = node?.kind === 'assistant-step' && canvasHistory.has(`a:${node.data.turn}:${node.data.step}`)
+    if (node?.visibility !== 'visible' && !canvasOnly) continue
     let role, text, notice = false, diagnosticId
     if (node.kind === 'assistant-step') {
       role = 'assistant'
@@ -28,7 +29,8 @@ export function conversationMessages(snapshot, limit, createDecoder, detailIndex
       if (typeof node.data.source?.rpcId === 'string') diagnosticId = `u:${node.data.source.rpcId}`
       text = node.data.content.filter(block => block.type === 'text').map(block => block.text).join('')
     } else continue
-    if (text) messages.push({ id: diagnosticId ?? node.key, role, text, ...(notice ? {notice:true} : {}), ...(diagnosticId && detailIndex.has(diagnosticId) ? { hasDetails:true, ...(role === 'user' ? {source:'speech'} : {}) } : {}) })
+    const canvas = diagnosticId && canvasHistory.get(diagnosticId)
+    if (text || canvas) messages.push({ id: diagnosticId ?? node.key, role, text, ...(canvas ? {canvas} : {}), ...(notice ? {notice:true} : {}), ...(diagnosticId && detailIndex.has(diagnosticId) ? { hasDetails:true, ...(role === 'user' ? {source:'speech'} : {}) } : {}) })
   }
   return messages.slice(-limit)
 }
