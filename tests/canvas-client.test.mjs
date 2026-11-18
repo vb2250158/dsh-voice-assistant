@@ -18,6 +18,7 @@ test('built DSH panel renders native tool-only canvas and hides text input by de
  try{
   await renderer.act(async()=>{view=renderer.create(React.createElement(slots.get('main')));for(let i=0;i<15;i++)await Promise.resolve()})
   assert.equal(view.root.findAllByType('canvas').length,1)
+  assert.equal(JSON.stringify(view.toJSON()).includes('助手设置'),false)
   assert.equal(view.root.findAllByType('input').some(input=>input.props['aria-label']==='消息'),false)
   assert.ok(JSON.stringify(view.toJSON()).includes('季度图'))
  }finally{if(view)await renderer.act(async()=>{view.unmount()})}
