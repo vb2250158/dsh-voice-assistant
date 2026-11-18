@@ -51,7 +51,11 @@ export function projectNativeExecution(snapshot,messageId) {
 /** Current call only; its arguments and outcome stay in the details view. */
 export function projectNativeActivity(snapshot) {
   const call=snapshot?.runningCalls?.filter(item=>item.phase==='start').at(-1)
-  if(!call||!Number.isSafeInteger(call.turn)||!Number.isSafeInteger(call.step))return undefined
+  if(!call){
+    const request=snapshot?.requests?.findLast(item=>item.purpose==='assistant'&&item.status==='running'&&Number.isSafeInteger(item.turn)&&Number.isSafeInteger(item.step))
+    return request?{status:'thinking',responseId:`a:${request.turn}:${request.step}`}:undefined
+  }
+  if(!Number.isSafeInteger(call.turn)||!Number.isSafeInteger(call.step))return undefined
   const args=call.argsRaw===undefined?undefined:parseArgs(call.argsRaw)
   const operation=args&&typeof args==='object'&&!Array.isArray(args)&&typeof args.operation==='string'?args.operation.slice(0,120):undefined
   return {status:'executing-tool',responseId:`a:${call.turn}:${call.step}`,tool:{callId:String(call.callId),name:call.name||'工具',...(operation?{operation}:{})}}

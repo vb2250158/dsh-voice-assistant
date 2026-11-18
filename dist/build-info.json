@@ -26,14 +26,14 @@
         "src/speech-playback.d.ts": "3350ac4406c909cd29ed4a103cbf00fc9c3948b9719e139ed3b76820111802d1",
         "src/speech-playback.js": "209a4f3611533ef725e567bad3ed8e0708c75a65690923b9362f4c2c9c88f409",
         "src/turn-runtime.d.ts": "f4732eaad0da395e0507a485ab3f8cb572c345fcb49a6b5e10d2d4f99351e5fd",
-        "src/turn-runtime.js": "27a5cdc95ec573a8a2fc70051b435668ba0ed1ba5ec6aaed44870deb1f194fe7",
+        "src/turn-runtime.js": "2d63e515a57d89733de3764a4eff3456671eaeba5bef666b9c921eb3cf7c2458",
         "src/visual-canvas.d.ts": "b12c956f8a00427e8165cc1673bf52b0eb53d87abb65b1477a875df1cce0b0c0",
         "src/visual-canvas.js": "691e1bec0343e6bc153cce689f79ed3e3f5e4ee99dd4f9394d8c9ffffa0edff1",
         "src/voice-interaction.d.ts": "91905988eedf6c67c40c44fd4c1c1a94ffb1151b5a2e59acfb590dcdb8662482",
         "src/voice-interaction.js": "2efba5cafe19f5916b1a454eac151ad310bef518c41a51f4dcf899ed2088e5d1",
-        "ui/assistant-panel-styles.js": "7eb98f05d105d15541b49e637a799e69359811a9c5478b464a41ed1a29d4201f",
+        "ui/assistant-panel-styles.js": "3bb4a9c0793467b48c16153f06a3afeefd17f7f5aab7a4bc6b1ee4321517cd1f",
         "ui/assistant-panel.d.ts": "399faf560321c37f495ef3684ba14d0ec6422547e105e13a7645b6f99ae3ee2c",
-        "ui/assistant-panel.js": "1cf1b12d0489ace3a81a432b1fe5901e194009eaea47e93ad5dd09058917ef74",
+        "ui/assistant-panel.js": "9dbeaeb9ae1ed771ae97d1bddef74b1c0fb7abd6a28bb0a66fce7fee52082d03",
         "ui/message-details.js": "1fa94000c4ac686478a9979159c8905c847338572d3ab18cd686f47826c65f86",
         "ui/message-presentation.js": "a8e0b1f424173d484acea08b8a678ce6406f0e1fb172b353ec545e371384998b",
         "ui/speech-capability-help.js": "4bf3a1d92d283aa5de2b14e294663101e8abac8c639cb252dd4d70b637715158",
@@ -103,6 +103,6 @@
       }
     }
   },
-  "hostSha256": "7e4aa06e6ee63661787f40b4c153fd51254b2f5d54e158324a2bdbc2253451c6",
-  "clientSha256": "93d991c98e81e29993413d94e626d887ad21022f99957732993ac462c8e7ffb3"
+  "hostSha256": "31dec002f8fc99bcb4b8bcd23b097c7aac74a454eb08309fd1d8b47a150ae4ef",
+  "clientSha256": "0703c8bfd3fedcf070f2d296812e66e5aab8ff1747eb4304b6b1911e9294da49"
 }
