@@ -75,7 +75,7 @@
         "src/tts-expression.mjs": "a95f79a7aea3e04e69ae2953f12f955d971b6199457305ee9cafccffc5aa80cb",
         "src/volcano-asr.mjs": "5d2c32391ef752e0165685c6ea340739ed8a7cbe8eb75d29561df9bd7cacf7b9",
         "src/volcano-codec.mjs": "589f368daaeddfd0aa97830c9e4e461bc8195463e744f2ca000f923767de9e3e",
-        "src/volcano-tts.mjs": "b64757b6e71972e01a010a441f1706c8efd5e9c4c532195e528f3dec6530fc19",
+        "src/volcano-tts.mjs": "c7b0bfd66b2082fcf41e0cb2108888979f73e26b2b3cac68345274f94ddaf201",
         "src/volcano-voices.mjs": "d42282a03a0ac3d47da285584817f0ff3061fdbb739b7ed8c7ec0de5e489732d",
         "src/web-search-catalog.mjs": "08559910dac62935195e6d22d3afe8fce2eea8978844818f5414d2ca5884ede3",
         "src/web-search.mjs": "d3b845d0074cb057a7e28eb96570d61bc8ef9c41af4fea6eaa14481591876a80",
@@ -103,6 +103,6 @@
       }
     }
   },
-  "hostSha256": "01faa3f25cb8c78ecd375cbc77e97e0a72b5fe7cfd7a43ad8bd419bbc0670f2c",
+  "hostSha256": "7e4aa06e6ee63661787f40b4c153fd51254b2f5d54e158324a2bdbc2253451c6",
   "clientSha256": "93d991c98e81e29993413d94e626d887ad21022f99957732993ac462c8e7ffb3"
 }

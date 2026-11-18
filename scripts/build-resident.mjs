@@ -59,6 +59,6 @@ await writeFile('dist/build-info.json',JSON.stringify({schemaVersion:2,inputs,ho
 await writeFile('sdk-snapshot.json',JSON.stringify(inputs,null,2)+'\n')
 if(!clientOnly){
 await mkdir('tests/generated',{recursive:true})
-await build({entryPoints:['src/canvas-native.mjs','src/canvas-history.mjs','src/resident-host.mjs','src/settings-store.mjs','src/speech-credentials.mjs',join(pc,'src/device-executable.mjs'),join(pc,'src/speech-details.mjs'),join(pc,'src/services.mjs'),join(pc,'src/caption-progress.mjs'),join(sdk,'src/voice-interaction.js')],outdir:'tests/generated',bundle:true,format:'esm',platform:'node',target:'node24',banner:{js:"import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);"},plugins:[shared],nodePaths})
+await build({entryPoints:['src/canvas-native.mjs','src/canvas-history.mjs','src/resident-host.mjs','src/settings-store.mjs','src/speech-credentials.mjs',join(pc,'src/device-executable.mjs'),join(pc,'src/speech-details.mjs'),join(pc,'src/volcano-tts.mjs'),join(pc,'src/volcano-codec.mjs'),join(pc,'src/services.mjs'),join(pc,'src/caption-progress.mjs'),join(sdk,'src/voice-interaction.js')],outdir:'tests/generated',bundle:true,format:'esm',platform:'node',target:'node24',banner:{js:"import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);"},plugins:[shared],nodePaths})
 }
 console.log(clientOnly?'Built shared UI; existing Host and desktop runtime unchanged':'Built resident Host, optional shared UI, and owned desktop runtime')
