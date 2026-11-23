@@ -91,9 +91,19 @@ allowBuilds:
 
 保留既有策略，禁止通配放行全部构建脚本；重跑原官方安装命令并验证 Koffi 在实际 Host 运行时可加载。仅配置许可不代表安装或设备验收成功。与桌宠组合安装时还需核对其固定 Git 来源构建许可，以及实际加载的显示租约协议和包版本。
 
+## 语音转写词典
+
+在「设置 → 语音识别 → 语音转写词典」每行填写一个词条。切换识别供应商后，词典继续保存在当前 DSH 配置里。支持词典的豆包模式会提交热词，支持提示词的 OpenAI 转写模型会把词条加入提示。DSH 原生识别接口当前不接收词条，界面会显示该状态。保存时会合并并去重旧版豆包热词。
+
+## 关键词唤醒
+
+DSH 负责人可在受信任的本机启动环境中提供 `DSH_VOICE_RESIDENT_EXECUTABLE`、`DSH_VOICE_RESIDENT_CONFIG` 和 `DSH_VOICE_RESIDENT_ROOT`。这三项分别指向已验收的 RabiSpeech worker 可执行文件、仅供本 DSH 使用的配置及其工作目录。使用独立配置，为本机静默转写选择已安装模型。 可用 `DSH_VOICE_RESIDENT_MODEL_ROOT` 指定已安装模型的绝对目录。 当可执行文件与服务源码分开部署时，另设 `DSH_VOICE_RESIDENT_SERVICE_ROOT`、`DSH_VOICE_RESIDENT_DEPS_ROOT` 或 `DSH_VOICE_RESIDENT_PYTHON_HOME`，分别指定相匹配版本的服务根、依赖根或 Python 安装根。
+
+在助手的「设置 → 设备 → 启动语音」选择「关键词唤醒」，填写一个或多个唤醒词并保存。快捷语音开关关闭时，唤醒待命和实时收音都会停止。没有部署本机唤醒服务时仍可手动开启实时语音。
+
 ## 构建
 
-设置 `DSH_SHARED_ASSISTANT_ROOT` 指向共享 SDK 0.13.1，`DSH_DESKTOP_SERVICE_ROOT` 指向 PC 服务壳 0.3.1，执行 `npm run build`。构建记录输入文件 SHA256 到 `sdk-snapshot.json` 与 `dist/build-info.json`，复制随包音频 runtime。宿主需提供现有 Electron；默认使用当前 DSH Home 下的 electron，可在进阶设置指定路径。本插件不下载模型或改开机启动。
+设置 `DSH_SHARED_ASSISTANT_ROOT` 指向共享 SDK 0.13.1，`DSH_DESKTOP_SERVICE_ROOT` 指向 PC 服务壳 0.3.2，执行 `npm run build`。构建记录输入文件 SHA256 到 `sdk-snapshot.json` 与 `dist/build-info.json`，复制随包音频 runtime。宿主需提供现有 Electron；默认使用当前 DSH Home 下的 electron，可在进阶设置指定路径。本插件不下载模型或改开机启动。
 
 当前构建期依赖 esbuild、zod、schemastery，生产依赖 Koffi 和 WebSocket 客户端 ws。DSH 公开服务由 profile 提供，不将另一份 DSH Core 打入插件。旧浏览器音频 owner 已从候选入口与源码移除。
 
@@ -112,6 +122,8 @@ allowBuilds:
 0.1.4 在设备启动前检查 Electron 路径：未安装、路径无效或文件不可读分别返回明确提示。留空仅查当前 DSH Home 下的 `electron/electron.exe`；隔离 Home 可在进阶设置中明确指定另一处已有程序，不自动跨 Home 搜索或下载。设备枚举和麦克风电平测试不需要模型密钥；有电平不等于已完成识别、播报和声学打断验收。
 
 0.1.4 同时显示原生 Chat 的终态失败，包括缺少对话模型凭据、账号退出和中断；这些记录在重新打开面板后仍可见。发送被受理不再留下长期成功提示，失败不会触发自动重试。共用显示组件版本为 0.11.1；语音循环未改。
+
+0.1.32 将语音转写词典接入共享设置，迁移旧热词并保留用户配置。自定义识别按当前服务能力使用词条。DSH 原生识别仍遵循官方参数，面板会标明词典是否可用。
 
 0.1.31 的受测目标为 DSH Core `0.2.3-alpha.2` 源码 Web、Windows x64、Node `24.22.3`、pnpm `11.28.5`、Cordis `4.2.0-alpha.1` 与 Schemastery `3.20.0-alpha.1`。保留原有 Core `0.2.2-rc.1` 与 `0.2.2-rc.5` 的依赖声明，供现有安装恢复。运行 `npm run test:peers` 前设置 `VOICE_TEST_DSH_CORE` 和 `VOICE_TEST_PET_ROOT`，检查当前 Core 和两包的依赖声明。
 

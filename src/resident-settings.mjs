@@ -1,5 +1,6 @@
 import z from '@deepseek-ai/schemastery'
 import { validateProviderEndpoint } from '@rabilink/desktop-voice-service/provider-profiles'
+import { parseWakeAliases } from '@rabilink/desktop-voice-service/resident-speech'
 import { speechParameterDefinitions, speechSelectionDefinitions } from '@rabilink/desktop-voice-service/speech-catalog'
 import { assistantSettingDefinitions, validateAssistantSettings } from '@rabilink/desktop-voice-service/settings'
 export const defaultPersona = `你是大肥鱼，也叫 DeepSeek 娘，是陪用户聊天、把事情办好的语音助手。
@@ -35,7 +36,10 @@ function parseSpeechProfiles(value) {
       const fields = {}
       for (const [key, item] of Object.entries(profile)) {
         if (!safeKey(key)) throw Error('ASSISTANT_SETTINGS_INVALID')
-        const spec = speechDefinitions[key]
+        // Retain old hotwords through the Loader until the shared schema migrates them.
+        const spec = key === 'asrHotwords' && kind === 'asr'
+          ? assistantSettingDefinitions.asrDictionary
+          : speechDefinitions[key]
         if (spec && key.startsWith(kind)) {
           if (typeof item !== typeof spec.default || spec.enum && !spec.enum.includes(item)
             || typeof item === 'string' && item.length > (spec.max ?? 2048)
@@ -54,11 +58,15 @@ function parseSpeechProfiles(value) {
 export const ResidentSettingsSchema = z.object({
   ...speechFields,
   onboardingComplete: z.boolean().default(assistantSettingDefinitions.onboardingComplete.default),
+  voiceEnabled: z.boolean().default(assistantSettingDefinitions.voiceEnabled.default),
+  keywordWakeEnabled: z.boolean().default(false), keywordWakeAliases: z.string().max(4096).default(''),
   assistantName: z.string().default(assistantSettingDefinitions.assistantName.default),
   voiceFavorites: z.string().default(assistantSettingDefinitions.voiceFavorites.default),
   persona: z.string().default(defaultPersona), agentPreset: z.string().default(''), cwd: z.string().default(''),
   manageAllWorkspaces: z.boolean().default(true), electronExecutable: z.string().default(''),
   asrMode: z.string().default('native'), asrProviderId: z.string().default(''), asrResourceId: z.string().default(''),
+  asrDictionary: z.string().max(assistantSettingDefinitions.asrDictionary.max),
+  asrHotwords: z.string().max(assistantSettingDefinitions.asrDictionary.max).hidden(),
   ttsProvider: z.string().default('compatible'), ttsResourceId: z.string().default(''), speechProfiles: z.transform(z.any(), parseSpeechProfiles, true).default({}),
   asrEndpoint: z.string().default('https://api.openai.com/v1/audio/transcriptions'), asrModel: z.string().default(''),
   ttsEndpoint: z.string().default('https://api.openai.com/v1/audio/speech'), ttsModel: z.string().default(''), ttsVoice: z.string().default(''),
@@ -72,9 +80,16 @@ export const ResidentSettingsSchema = z.object({
   captionHeight: z.number().min(100).max(2048).default(150), captionHasBounds: z.boolean().default(false),
   petEnabled: z.boolean().default(false), petId: z.string().default(''), petBubbles: z.boolean().default(true), petAnimation: z.boolean().default(true),
 })
+export function readResidentSettings(value) {
+  const config = validateAssistantSettings(ResidentSettingsSchema(value), 'dsh')
+  config.asrDictionary ??= assistantSettingDefinitions.asrDictionary.default
+  return config
+}
+
 export function validateResidentSettings(value) {
-  const config = ResidentSettingsSchema(value)
-  validateAssistantSettings(config, 'dsh')
+  const config = readResidentSettings(value)
+  const wakeAliases = parseWakeAliases(config.keywordWakeAliases)
+  if (config.keywordWakeEnabled && !wakeAliases.length) throw Error('ASSISTANT_WAKE_ALIASES_REQUIRED')
   if (!['native','compatible','volcengine'].includes(config.asrMode) || !['compatible','volcengine'].includes(config.ttsProvider) || !['light','dark'].includes(config.captionSkin)
     || !['top','bottom'].includes(config.captionPosition) || config.persona.length > 16000 || config.petId.length > 128) throw Error('ASSISTANT_SETTINGS_INVALID')
   for (const [key, spec] of Object.entries(speechDefinitions)) {

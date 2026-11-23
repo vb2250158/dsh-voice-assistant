@@ -1,16 +1,58 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { PassThrough } from 'node:stream'
+import { setImmediate } from 'node:timers/promises'
 import {createResidentHost,projectSpeechProgress} from './generated/resident-host.js'
 import {createSettingsStore} from './generated/settings-store.js'
 import {createSpeechCredentials} from './generated/speech-credentials.js'
-function fixture(initial={},makeDevice) {
+function fixture(initial={},makeDevice,residentSpeech) {
   let value={electronExecutable:process.execPath,...initial},revision=0,opens=0,failCleanup=false
   const store=createSettingsStore({describe:()=>[{ns:'voice',value,revision}],async update(_ns,patch,expected){assert.equal(expected,revision);value={...value,...patch};revision++}},'voice',()=>value)
   const credentials=createSpeechCredentials({describeRecord:async()=>({configured:false,writable:true})},(a,b)=>a+'/'+b)
-  const host=createResidentHost({ctx:{on:()=>()=>{},inject:()=>{},sessionController:{modelCatalog:async()=>({groups:[]})}},settings:store.read,saveSettings:store.save,binding:{get:()=>({})},credentials,
+  const host=createResidentHost({ctx:{on:()=>()=>{},inject:()=>{},sessionController:{modelCatalog:async()=>({groups:[]})}},settings:store.read,saveSettings:store.save,previewSettings:store.preview,binding:{get:()=>({})},credentials,residentSpeech,
     deviceFactory:async()=>{opens++;return makeDevice ? makeDevice() : {enumerateDevices:async()=>[],async close(){if(failCleanup)throw Error('PROCESS_CLEANUP_UNCONFIRMED')}}}})
   return {host,store,opens:()=>opens,failCleanup:()=>{failCleanup=true}}
 }
+test('keyword mode arms from native settings and the main switch stops passive capture', async () => {
+  const arms = [], streams = []
+  const residentSpeech = { async openAssistantWake(aliases, signal) {
+    arms.push(aliases)
+    const stream = new PassThrough()
+    streams.push(stream)
+    stream.statusCode = 200
+    stream.headers = { 'content-type': 'application/x-ndjson' }
+    stream.endOnAbort = () => stream.destroy()
+    signal.addEventListener('abort', stream.endOnAbort, { once: true })
+    stream.write(JSON.stringify({ type: 'ready', captureId: 'a'.repeat(32), sampleRate: 16000 }) + '\n')
+    return stream
+  } }
+  const f = fixture({}, undefined, residentSpeech)
+  try {
+    await f.host.initialize(); assert.equal((await f.host.state()).keywordWake.phase, 'disabled')
+    await assert.rejects(f.host.command({ action:'settings', patch:{ keywordWakeEnabled:true } }), /ASSISTANT_WAKE_ALIASES_REQUIRED/)
+    assert.equal(f.store.read().keywordWakeEnabled, false)
+    await f.host.command({ action:'settings', patch:{ keywordWakeEnabled:true, keywordWakeAliases:'夜雨， 大肥鱼，夜雨' } })
+    await setImmediate()
+    assert.deepEqual(arms, [['夜雨', '大肥鱼']])
+    assert.equal((await f.host.state()).keywordWake.phase, 'armed')
+    assert.equal((await f.host.command({ action:'settings', patch:{ voiceEnabled:false } })).keywordWake.phase, 'disabled')
+    assert.equal(streams[0].destroyed, true)
+    assert.equal(f.store.read().keywordWakeEnabled, true)
+    assert.equal(f.opens(), 0)
+  } finally { await f.host.dispose() }
+})
+
+test('without an owned wake provider manual mode remains available and enabling wake is refused', async () => {
+  const f = fixture()
+  try {
+    await f.host.initialize()
+    assert.equal((await f.host.state()).capabilities.keywordWake, false)
+    await assert.rejects(f.host.command({ action:'settings', patch:{ keywordWakeEnabled:true, keywordWakeAliases:'夜雨' } }), /ASSISTANT_WAKE_SERVICE_UNAVAILABLE/)
+    assert.equal(f.store.read().voiceEnabled, true)
+    assert.equal(f.store.read().keywordWakeEnabled, false)
+  } finally { await f.host.dispose() }
+})
+
 test('playback progress targets the corresponding native Chat message',()=>{
   const source=[{responseId:'attempt-1',spokenEnd:3,timingMode:'word',speechStatus:'playing'}]
   const result=projectSpeechProgress(source,id=>id==='attempt-1'?'a:2:3':undefined)

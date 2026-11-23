@@ -8,11 +8,14 @@ import { pathToFileURL } from 'node:url'
 const profile = process.env.VOICE_TEST_DSH_PROFILE
 if (!profile) throw Error('Set VOICE_TEST_DSH_PROFILE to an independently installed DSH profile')
 const requireProfile = createRequire(pathToFileURL(join(profile, 'package.json')))
-const requireHost = createRequire(requireProfile.resolve('dsh-voice-assistant/package.json'))
+const installedHostUrl = pathToFileURL(requireProfile.resolve('dsh-voice-assistant/package.json')).href
 const hook = registerHooks({ resolve(specifier, context, next) {
-  if (specifier.startsWith('@deepseek-ai/') || specifier === 'koffi')
-    return { url: pathToFileURL(requireHost.resolve(specifier)).href, shortCircuit: true }
-  return next(specifier, context)
+  try {
+    return next(specifier, context)
+  } catch (error) {
+    if (!specifier.startsWith('@deepseek-ai/') && specifier !== 'koffi') throw error
+    return next(specifier, { ...context, parentURL: installedHostUrl })
+  }
 } })
 
 test('built Host imports with real DSH peers and its real storage domain persists and reopens', async () => {

@@ -3,6 +3,7 @@ import { defineDomain, domainTable } from '@deepseek-ai/dsh-storage-domain'
 import { credentialKey } from '@deepseek-ai/dsh-credentials'
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import { openDesktopDevice } from '@rabilink/desktop-voice-service/node'
+import { createManagedResidentSpeech } from '@rabilink/desktop-voice-service/resident-speech'
 import { ResidentSettingsSchema } from './resident-settings.mjs'
 import { createSettingsStore } from './settings-store.mjs'
 import { optionalNativeSpeech } from './optional-speech.mjs'
@@ -43,12 +44,12 @@ export async function apply(ctx, config) {
   const speechContext = await ctx.sessionProjections.register(speechContextProjection)
   const canvasContext = await ctx.sessionProjections.register(canvasProjection)
   const domain = await ctx.storageDomain.open(domainSpec)
-  let disposed = false, settingsUrl, store, host, unregister, migration
+  let disposed = false, settingsUrl, store, host, unregister, migration, residentSpeech
   // Register cleanup immediately after acquisition, including partially failed initialization.
   ctx.effect(() => async () => {
     disposed = true
     const errors = []
-    for (const release of [() => unregister?.(), () => migration?.close(), () => host?.dispose(), () => store?.close(), () => domain.close()]) {
+    for (const release of [() => unregister?.(), () => migration?.close(), () => host?.dispose(), () => residentSpeech?.dispose(), () => store?.close(), () => domain.close()]) {
       try { await release() } catch (error) { errors.push(error) }
     }
     if (errors.length) throw new AggregateError(errors, 'ASSISTANT_CLEANUP_FAILED')
@@ -63,14 +64,30 @@ export async function apply(ctx, config) {
   }
   const settings = () => { try { return store.read() } catch (error) { diagnose('settings-read', error); throw error } }
   migration = createAsrMigration({ store, ledger:domain.table('migrations'), fields:volcanoAsrParameters })
-  ctx.on('settings/document-updated', ns => { if (ns === namespace && !disposed) void migration.run().catch(error => diagnose('asr-migration', error)) })
+  // Run the migration from the HTTP handler, outside native settings refresh transactions.
+  const launch = {
+    executable: process.env.DSH_VOICE_RESIDENT_EXECUTABLE,
+    configPath: process.env.DSH_VOICE_RESIDENT_CONFIG,
+    workspaceRoot: process.env.DSH_VOICE_RESIDENT_ROOT,
+    serviceRoot: process.env.DSH_VOICE_RESIDENT_SERVICE_ROOT?.trim() || undefined,
+    dependenciesRoot: process.env.DSH_VOICE_RESIDENT_DEPS_ROOT?.trim() || undefined,
+    pythonHome: process.env.DSH_VOICE_RESIDENT_PYTHON_HOME?.trim() || undefined,
+    modelRoot: process.env.DSH_VOICE_RESIDENT_MODEL_ROOT?.trim() || undefined,
+  }
+  if ([launch.executable, launch.configPath, launch.workspaceRoot].every(value => value?.trim())) {
+    try { residentSpeech = createManagedResidentSpeech(launch) }
+    catch (error) { diagnose('wake-launch-configuration', error) }
+  }
   const saveSettings = store.save
-  host = createResidentHost({ ctx, speechContext, canvasContext, defineTool, settings, saveSettings, previewSettings: store.preview, saveSettingsBatch: store.saveBatch, diagnose, binding: domain.global, deviceFactory: openDesktopDevice, speech: optionalNativeSpeech(ctx), pet: optionalPetPresenter(ctx),
+  host = createResidentHost({ ctx, residentSpeech, speechContext, canvasContext, defineTool, settings, saveSettings, previewSettings: store.preview, saveSettingsBatch: store.saveBatch, diagnose, binding: domain.global, deviceFactory: openDesktopDevice, speech: optionalNativeSpeech(ctx), pet: optionalPetPresenter(ctx),
     credentials: createSpeechCredentials(ctx.credentials, credentialKey),
     installTools: agent => installNativeManagement({ ctx, agent, settings, ledger: domain.table('requests'), defineTool }),
     openSettings: () => { if (!settingsUrl) throw Error('ASSISTANT_SETTINGS_URL_UNAVAILABLE'); return host.openSettings(settingsUrl) },
   })
   await host.initialize()
+  ctx.on('settings/document-updated', ns => {
+    if (ns === namespace && !disposed) void host.syncWake().catch(error => diagnose('wake-configuration', error))
+  })
   unregister = ctx.connection.fetch.register({ path: '/api/voice-assistant', methods: ['GET','POST'], requestBody: 'buffered',
     async fetch(request) {
       if (disposed) return json({ error: 'ASSISTANT_CLOSED' }, 503)

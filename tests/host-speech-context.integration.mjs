@@ -107,9 +107,15 @@ test('real DSH agent sends utterance observations to the model and retains them 
       asrAgentContext,
     })
     let settled = idle(agent)
-    await native.submit('你好','request-1234',{source:'speech',details:{kind:'asr',provider:'volcengine',model:'bigmodel',result:{additions:{emotion:'happy',age:'23.3',log_id:'fixture-private-log'}},request:{headers:{authorization:'fixture-private-key'}}}})
+    const background = [{ text:'刚才在讲回环测试', ageMs:5000 }]
+    await native.submit('你好','request-1234',{source:'speech',details:{kind:'asr',provider:'volcengine',model:'bigmodel',result:{additions:{emotion:'happy',age:'23.3',log_id:'fixture-private-log'}},request:{headers:{authorization:'fixture-private-key'}}},
+      recentSpeech:[{...background[0],providerKey:'fixture-private-background'}, {text:'too old',ageMs:100000}]})
     await settled
-    assert.equal(JSON.parse(adapter.requests[0].messages.find(message => message.role === 'user').content[0].text).speechObservation.estimates.emotion, 'happy')
+    const modelInput = JSON.parse(adapter.requests[0].messages.find(message => message.role === 'user').content[0].text)
+    assert.equal(modelInput.speechObservation.estimates.emotion, 'happy')
+    assert.deepEqual(modelInput.recentSpeech, background)
+    assert.match(modelInput.recentSpeechNotice, /context/)
+    assert.doesNotMatch(JSON.stringify(modelInput), /too old/)
     assert.doesNotMatch(JSON.stringify(adapter.requests[0].messages), /fixture-private/)
     assert.match(JSON.stringify(adapter.requests[0].messages), /23\.3/)
     settled = idle(agent)

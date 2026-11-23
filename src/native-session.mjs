@@ -182,7 +182,7 @@ export function createNativeSession(ctx, { settings, binding, installTools = () 
       retain(key, record); return true
     },
     eventSource: { getSnapshot: () => snapshot, subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn) } },
-    async submit(text, requestId, { source = 'text', details: speechDetails } = {}) {
+    async submit(text, requestId, { source = 'text', details: speechDetails, recentSpeech } = {}) {
       if (switching) throw Error('ASSISTANT_CONTEXT_BUSY')
       if (typeof text !== 'string' || !text.trim() || text.length > 16000) throw Error('ASSISTANT_INPUT_INVALID')
       if (typeof requestId !== 'string' || !/^[a-zA-Z0-9_-]{8,128}$/.test(requestId)) throw Error('ASSISTANT_REQUEST_ID_INVALID')
@@ -192,8 +192,7 @@ export function createNativeSession(ctx, { settings, binding, installTools = () 
       if (visual) canvasEpoch=visual.canvas.beginInput()
       const key = `u:${requestId}`, previous = details.get(key)
       if (source === 'speech' && speechDetails && !previous) retain(key, { message: { id: key, role: 'user', text, source: 'speech' }, details: safeDetails(speechDetails) })
-      const observation = source === 'speech' ? asrAgentContext(speechDetails) : undefined
-      if (observation) recordSpeechContext(attached.session, requestId, text, observation)
+      if (source === 'speech') recordSpeechContext(attached.session, requestId, text, asrAgentContext(speechDetails), recentSpeech)
       try { return await ctx.sessionController.prompt({ sessionId, requestId, mode: 'queue', content: [{ type: 'text', text }] }, new AbortController().signal) }
       catch (error) { if (!previous) details.delete(key); throw error }
     },
