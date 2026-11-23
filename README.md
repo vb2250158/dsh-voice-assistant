@@ -113,7 +113,7 @@ allowBuilds:
 
 0.1.4 同时显示原生 Chat 的终态失败，包括缺少对话模型凭据、账号退出和中断；这些记录在重新打开面板后仍可见。发送被受理不再留下长期成功提示，失败不会触发自动重试。共用显示组件版本为 0.11.1；语音循环未改。
 
-当前维护环境使用 Windows x64、Node 24.15.0 与 pnpm 11.28.5，从官方 DSH 源码启动 Web。插件声明支持 Core `0.2.2-rc.1` 和 `0.2.2-rc.5`，本次候选使用后者。Cordis 为 `4.1.0`，Schemastery 为 `3.19.0`。运行 `npm run test:peers` 前设置 `VOICE_TEST_DSH_CORE` 和 `VOICE_TEST_PET_ROOT`，检查当前 Core 和两包的依赖声明。
+0.1.31 的受测目标为 DSH Core `0.2.3-alpha.2` 源码 Web、Windows x64、Node `24.22.3`、pnpm `11.28.5`、Cordis `4.2.0-alpha.1` 与 Schemastery `3.20.0-alpha.1`。保留原有 Core `0.2.2-rc.1` 与 `0.2.2-rc.5` 的依赖声明，供现有安装恢复。运行 `npm run test:peers` 前设置 `VOICE_TEST_DSH_CORE` 和 `VOICE_TEST_PET_ROOT`，检查当前 Core 和两包的依赖声明。
 
 0.1.21 将语音识别实际返回的估计值关联到对应的原生用户消息，写入会话的模型上下文并在后续轮次与会话恢复时保留。聊天气泡继续显示原始转写；识别结果是针对该句的估计，不是确定身份。未返回的字段不会补造，音频、请求头、密钥与日志标识不会进入模型上下文。
 

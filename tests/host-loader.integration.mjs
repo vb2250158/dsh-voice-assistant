@@ -24,13 +24,15 @@ for (const group of fsReaddir(join(core, 'packages'))) {
   }
 }
 function fsReaddir(path) { return readdirSync(path, { withFileTypes: true }).filter(row => row.isDirectory()).map(row => row.name) }
+for (const specifier of ['@deepseek-ai/cordis', '@deepseek-ai/cordis-plugin-loader', '@deepseek-ai/schemastery']) {
+  coreModules.set(specifier, requireBoot.resolve(specifier))
+}
+const installedHostUrl = pathToFileURL(requireHost.resolve('dsh-voice-assistant/package.json')).href
 const hook = registerHooks({ resolve(specifier, context, next) {
   if (coreModules.has(specifier)) return { url: pathToFileURL(coreModules.get(specifier)).href, shortCircuit: true }
-  if (specifier === '@deepseek-ai/cordis' || specifier === '@deepseek-ai/cordis-plugin-loader' || specifier === '@deepseek-ai/schemastery')
-    return { url: pathToFileURL(requireBoot.resolve(specifier)).href, shortCircuit: true }
   try { return next(specifier, context) } catch (error) {
     if (!specifier.startsWith('@deepseek-ai/') && specifier !== 'koffi') throw error
-    return { url: pathToFileURL(requireHost.resolve(specifier)).href, shortCircuit: true }
+    return next(specifier, { ...context, parentURL: installedHostUrl })
   }
 } })
 
@@ -60,7 +62,7 @@ test('real Loader activates complete built apply, preserves live Config and pers
       { id: namespace, name: 'cordis:assistant', config: { persona: 'persisted fixture persona', captionFontSize: 29, asrMode: 'compatible', asrModel: 'gpt-4o-mini-transcribe', ttsModel: 'gpt-4o-mini-tts', ttsVoice: 'alloy' } },
     ] }]))
     writeFileSync(join(dir, 'cordis.yml'), '[]\n')
-    const context = { name: 'test', startedBundles: ['test-bundle'], dir, patchPath: join(dir, 'cordis.patch.yml'), installAnchor: join(home, 'package.json'), cwd: home, home, overlays: [], telemetryDisabledEnv: undefined }
+    const context = { name: 'test', startedBundles: ['test-bundle'], dir, patchPath: join(dir, 'cordis.patch.yml'), installAnchor: join(home, 'package.json'), cwd: home, home, overlayPaths: [], telemetryDisabledEnv: undefined }
     const Ports = { inject: ['storage'], apply(owner) {
       // Only transport/credentials/model ports and the storage medium are fixtures; Loader,
       // Settings, ConfigEditor, DomainFacility and the entire built assistant apply are real.
