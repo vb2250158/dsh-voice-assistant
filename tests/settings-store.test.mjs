@@ -128,13 +128,13 @@ test('new installs keep the shared caption default and preserve an explicit choi
 })
 
 test('legacy hotwords become one dictionary and remain independent of provider selection', async () => {
-  const legacy = { asrHotwords: '夜雨\n秋雨', speechProfiles: { asr: { volcengine: { asrHotwords: '秋雨\n拉比' } } } }
+  const legacy = { asrHotwords: '示例项目\n测试术语', speechProfiles: { asr: { volcengine: { asrHotwords: '测试术语\n应用名' } } } }
   const f = fixture(legacy)
-  assert.equal(f.store.read().asrDictionary, '夜雨\n秋雨\n拉比')
+  assert.equal(f.store.read().asrDictionary, '示例项目\n测试术语\n应用名')
   assert.deepEqual(f.config(), legacy)
   await f.store.saveBatch([{ asrMode: 'volcengine' }, { asrMode: 'compatible' }, { asrMode: 'native' }])
   assert.equal(f.writes(), 1)
-  assert.equal(f.store.read().asrDictionary, '夜雨\n秋雨\n拉比')
+  assert.equal(f.store.read().asrDictionary, '示例项目\n测试术语\n应用名')
   assert.equal(Object.hasOwn(f.config(), 'asrHotwords'), false)
   assert.ok(!JSON.stringify(f.config().speechProfiles).includes('asrHotwords'))
   await f.store.save({ asrDictionary: '' })

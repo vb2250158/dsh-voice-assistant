@@ -31,9 +31,9 @@ test('keyword mode arms from native settings and the main switch stops passive c
     await f.host.initialize(); assert.equal((await f.host.state()).keywordWake.phase, 'disabled')
     await assert.rejects(f.host.command({ action:'settings', patch:{ keywordWakeEnabled:true } }), /ASSISTANT_WAKE_ALIASES_REQUIRED/)
     assert.equal(f.store.read().keywordWakeEnabled, false)
-    await f.host.command({ action:'settings', patch:{ keywordWakeEnabled:true, keywordWakeAliases:'夜雨， 大肥鱼，夜雨' } })
+    await f.host.command({ action:'settings', patch:{ keywordWakeEnabled:true, keywordWakeAliases:'小助手， 你好助手，小助手' } })
     await setImmediate()
-    assert.deepEqual(arms, [['夜雨', '大肥鱼']])
+    assert.deepEqual(arms, [['小助手', '你好助手']])
     assert.equal((await f.host.state()).keywordWake.phase, 'armed')
     assert.equal((await f.host.command({ action:'settings', patch:{ voiceEnabled:false } })).keywordWake.phase, 'disabled')
     assert.equal(streams[0].destroyed, true)
@@ -47,7 +47,7 @@ test('without an owned wake provider manual mode remains available and enabling 
   try {
     await f.host.initialize()
     assert.equal((await f.host.state()).capabilities.keywordWake, false)
-    await assert.rejects(f.host.command({ action:'settings', patch:{ keywordWakeEnabled:true, keywordWakeAliases:'夜雨' } }), /ASSISTANT_WAKE_SERVICE_UNAVAILABLE/)
+    await assert.rejects(f.host.command({ action:'settings', patch:{ keywordWakeEnabled:true, keywordWakeAliases:'小助手' } }), /ASSISTANT_WAKE_SERVICE_UNAVAILABLE/)
     assert.equal(f.store.read().voiceEnabled, true)
     assert.equal(f.store.read().keywordWakeEnabled, false)
   } finally { await f.host.dispose() }

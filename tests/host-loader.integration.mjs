@@ -64,7 +64,7 @@ test('real Loader activates complete built apply, preserves live Config and pers
     writeFileSync(join(bundle, 'cordis.patch.yml'), JSON.stringify([{ insert: [
       { id: 'config-editor', name: 'cordis:editor' }, { id: 'settings', name: 'cordis:settings' },
       { id: 'storage', name: 'cordis:storage' }, { id: 'projections', name: 'cordis:projections' }, { id: 'ports', name: 'cordis:ports' },
-      { id: namespace, name: 'cordis:assistant', config: { persona: 'persisted fixture persona', captionFontSize: 29, asrMode: 'compatible', asrModel: 'gpt-4o-mini-transcribe', asrHotwords: '夜雨', ttsModel: 'gpt-4o-mini-tts', ttsVoice: 'alloy' } },
+      { id: namespace, name: 'cordis:assistant', config: { persona: 'persisted fixture persona', captionFontSize: 29, asrMode: 'compatible', asrModel: 'gpt-4o-mini-transcribe', asrHotwords: '测试术语', ttsModel: 'gpt-4o-mini-tts', ttsVoice: 'alloy' } },
     ] }]))
     writeFileSync(join(dir, 'cordis.yml'), '[]\n')
     const context = { name: 'test', startedBundles: ['test-bundle'], dir, patchPath: join(dir, 'cordis.patch.yml'), installAnchor: join(home, 'package.json'), cwd: home, home, overlayPaths: [], telemetryDisabledEnv: undefined }
@@ -109,10 +109,10 @@ test('real Loader activates complete built apply, preserves live Config and pers
     assert.equal(first.settings.persona, 'persisted fixture persona')
     assert.equal(first.settings.captionFontSize, 29)
     assert.equal(first.settings.voiceEnabled, true)
-    assert.equal(first.settings.asrDictionary, '夜雨')
+    assert.equal(first.settings.asrDictionary, '测试术语')
     assert.equal(first.asrDictionary.recognition.format, 'prompt')
-    await request({ action: 'settings', patch: { asrDictionary: '夜雨\n拉比' } })
-    assert.equal((await request()).settings.asrDictionary, '夜雨\n拉比')
+    await request({ action: 'settings', patch: { asrDictionary: '测试术语\n示例项目' } })
+    assert.equal((await request()).settings.asrDictionary, '测试术语\n示例项目')
     await request({ action: 'settings', patch: { voiceEnabled: false } })
     assert.equal((await request()).settings.voiceEnabled, false, 'voice switch must persist in native DSH settings')
     assert.equal(ctx.settings.describe().find(row => row.ns === namespace).autoGenerate, false)
@@ -138,7 +138,7 @@ test('real Loader activates complete built apply, preserves live Config and pers
     await entry.update({ disabled: false }); await ctx.loader.await()
     assert.ok(ctx.settings.describe().some(row => row.ns === namespace))
     assert.equal((await request()).settings.captionFontSize, 31)
-    assert.equal((await request()).settings.asrDictionary, '夜雨\n拉比')
+    assert.equal((await request()).settings.asrDictionary, '测试术语\n示例项目')
     assert.equal((await request()).settings.voiceEnabled, false, 'voice switch must survive a Loader reactivation')
     // A carrier failure after domain acquisition must release the domain for the next activation.
     await entry.update({ disabled: true }); await ctx.loader.await()
@@ -150,7 +150,7 @@ test('real Loader activates complete built apply, preserves live Config and pers
     rejectRoute = false
     await entry.update({ disabled: false }); await ctx.loader.await()
     assert.equal((await request()).settings.captionFontSize, 31)
-    assert.equal((await request()).settings.asrDictionary, '夜雨\n拉比')
+    assert.equal((await request()).settings.asrDictionary, '测试术语\n示例项目')
   } finally {
     await ctx?.fiber.dispose()
     hook.deregister()

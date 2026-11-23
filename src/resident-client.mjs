@@ -33,7 +33,7 @@ function KeywordWakeSettings({ state, settingsTab, command, dirty }) {
   return h('fieldset', null, h('legend', null, '启动语音'),
     h('label', null, '启动方式', h('select', { value: mode, disabled: !available && !enabled, 'aria-label':'语音启动方式', onChange:event => setMode(event.target.value) },
       h('option', { value:'manual' }, '手动开始'), h('option', { value:'keyword', disabled:!available }, '关键词唤醒'))),
-    mode === 'keyword' && h('label', null, '唤醒词', h(Input, { value:text, placeholder:'夜雨，大肥鱼', onChange:event => setText(event.target.value) })),
+    mode === 'keyword' && h('label', null, '唤醒词', h(Input, { value:text, placeholder:'例如：小助手、你好助手', onChange:event => setText(event.target.value) })),
     mode === 'keyword' && h('p', null, '多个唤醒词用逗号分隔。唤醒前只在本机转写。'),
     !available && h('p', { role:'status' }, '本机唤醒服务尚未配置，可以手动开始实时语音。'),
     available && wakePhaseLabel[wake?.phase] && h('p', { role:'status' }, wakePhaseLabel[wake.phase], wake.error ? ' · ' + (deviceErrors[wake.error] || '请检查唤醒配置') : ''),
