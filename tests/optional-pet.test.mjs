@@ -24,3 +24,17 @@ test('detaching with a pending frame prevents late pet output',async()=>{
   const f=fixture();f.connect();f.pet.present({petEnabled:true,petId:'fish',petBubbles:true,petAnimation:true},{responseId:'late',text:'late'})
   await f.release();await delay(400);assert.equal(f.frames.length,0);await f.pet.dispose()
 })
+
+test('a resident update without a reply clears stale pet output without interrupting voice',async()=>{
+  const f=fixture()
+  f.connect()
+  const config={petEnabled:true,petId:'fish',petBubbles:true,petAnimation:true}
+  f.pet.present(config,{responseId:'r1',text:'Already speaking'})
+  await delay(400)
+  assert.equal(f.frames[0].text,'Already speaking')
+  f.pet.present(config,{statusText:'正在聆听',inputPreview:{text:'Listening'}})
+  await delay(400)
+  assert.deepEqual(f.frames[1],{clear:true})
+  f.pet.present({...config,petEnabled:false},{statusText:'语音已停止'})
+  await f.pet.dispose()
+})

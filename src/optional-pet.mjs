@@ -31,7 +31,7 @@ export function optionalPetPresenter(ctx) {
       const entry = current
       if (!entry || closed) return
       entry.latest = { enabled: config.petEnabled, petId: config.petId, bubbles: config.petBubbles,
-        animation: config.petAnimation, text: view.text.slice(-4000), responseId: view.responseId }
+        animation: config.petAnimation, text: typeof view.text === 'string' ? view.text.slice(-4000) : '', responseId: view.responseId }
       if (entry.timer) return
       entry.timer = setTimeout(() => {
         entry.timer = undefined
