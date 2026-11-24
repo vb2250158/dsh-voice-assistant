@@ -57,3 +57,43 @@ test('native trajectory updates details availability and releases both subscript
  await flush();assert.equal(received.at(-1)[0].hasDetails,true);assert.ok(lastTrajectory)
  changed();assert.equal(received.length,2);stop();assert.equal(off,2);assert.equal(lastTrajectory,undefined)
 })
+
+test('an exclusive voice reference activates native Chat for history and streamed replies', async () => {
+  let retained = false
+  let notify
+  let text = '第一句'
+  const chat = {
+    getSnapshot() {
+      return retained ? {
+        order: ['user', 'reply'],
+        nodes: new Map([
+          ['user', { key: 'user', kind: 'user', visibility: 'visible', data: { content: [{ type: 'text', text: '你好' }] } }],
+          ['reply', { key: 'reply', kind: 'assistant-step', visibility: 'visible', data: { turn: 2, step: 1, blocks: [{ kind: 'text', text }] } }],
+        ]),
+      } : { order: [], nodes: new Map() }
+    },
+    subscribe(listener) { notify = listener; return () => { notify = undefined } },
+  }
+  const ctx = {
+    sessions: {
+      ensureListed: async () => true,
+      retain(_id, options) {
+        retained = options.facets?.conversation === true
+        return { ready: Promise.resolve('binding'), release() { retained = false } }
+      },
+    },
+    uiConversation: {
+      binding: () => ({ target: name => name === 'chat' ? chat : { getSnapshot: () => undefined, subscribe: () => () => {} } }),
+    },
+  }
+  const received = []
+  const stop = subscribeConversation(ctx, 'voice-session', messages => received.push(messages), error => { throw error })
+  await flush()
+  assert.equal(received.at(-1).find(item => item.id === 'a:2:1')?.text, '第一句')
+  text += '还有后半句'
+  notify()
+  assert.deepEqual(received.at(-1).map(item => [item.role, item.text]), [['user', '你好'], ['assistant', '第一句还有后半句']])
+  stop()
+  assert.equal(retained, false)
+  assert.equal(notify, undefined)
+})

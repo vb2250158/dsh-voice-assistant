@@ -10,7 +10,7 @@ export function subscribeConversation(ctx, sessionId, onMessages, onError, creat
       const listed = await ctx.sessions.ensureListed(sessionId)
       if (closed) return
       if (!listed) throw Error('无法载入助手会话，请刷新页面重试。')
-      reference = ctx.sessions.retain(sessionId, { source: 'voiceAssistant' })
+      reference = ctx.sessions.retain(sessionId, { source: 'voiceAssistant', facets: { conversation: true } })
       const binding = await reference.ready
       if (closed) return
       const conversation = ctx.uiConversation.binding(binding), source = conversation.target('chat'), trajectory = conversation.target('trajectory')
