@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Button, IconMicrophoneOutlineRegular } from '@deepseek-ai/dsh-client-ui-primitives'
+import { Button, IconMicrophoneOutlineRegular, Switch } from '@deepseek-ai/dsh-client-ui-primitives'
 import { createAssistantPanel } from '@rabilink/assistant-runtime/ui'
 import { createSpeechExpressionDecoder } from '@rabilink/assistant-runtime/voice'
 import { subscribeConversation } from './subscribe-conversation.mjs'
@@ -23,6 +23,16 @@ html[data-platform=darwin] .dsh-voice-assistant-panel {
 .dsh-voice-assistant-panel > .va-panel {
   box-sizing: border-box;
   width: 100%;
+}
+.dsh-voice-assistant-panel .dsh-voice-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  white-space: nowrap;
+}
+.dsh-voice-assistant-panel .dsh-voice-toggle > button {
+  min-height: 0;
 }
 .dsh-voice-assistant-panel .va-live-header > div {
   min-width: 0;
@@ -151,6 +161,19 @@ function KeywordWakeSettings({ state, settingsTab, command, dirty }) {
     }, '唤醒设置已保存。') }, '保存唤醒设置'))
 }
 export const inject=['slots','layout','locale','sessions','uiConversation']
+function AssistantButton({ children, ...props }) {
+  if (props.className !== 'va-voice-switch') return React.createElement(Button, props, children)
+  // Use the host switch. The shared track must stay out of the host's styled button.
+  const title = React.Children.toArray(children).find(child => typeof child === 'string')
+  return React.createElement('label', { className: 'dsh-voice-toggle' },
+    React.createElement('span', null, title),
+    React.createElement(Switch, {
+      label: title,
+      checked: props['aria-checked'],
+      onChange: props.onClick,
+      disabled: props.disabled,
+    }))
+}
 export function apply(ctx) {
   ctx.effect(()=>ctx.locale.register(namespace,{en:{title:'Voice assistant',back:'Back'},zh:{title:'语音助手',back:'返回'}}))
   const t=ctx.locale.bind(namespace)
@@ -190,7 +213,7 @@ export function apply(ctx) {
   const SettingsPage=({open,title,onClose,children})=>open?React.createElement('div',{className:'dsh-voice-settings-page'},
     React.createElement('header',null,React.createElement(Button,{onClick:onClose},t('back')),React.createElement('h2',null,title)),children):null
   // The shared panel styles its native inputs, so a bordered DSH Input wrapper would compete with them.
-  const Panel=createAssistantPanel(React,{Button,Modal:SettingsPage,HostSettings:KeywordWakeSettings,settingsPresentation:'page'})
+  const Panel=createAssistantPanel(React,{Button:AssistantButton,Modal:SettingsPage,HostSettings:KeywordWakeSettings,settingsPresentation:'page'})
   ctx.provide('dshAssistant',{open(){ctx.layout.selectPanel(namespace)}})
   ctx.slots.inject('main',()=>ctx.slots.register({name:'main',key:namespace,locale:namespace},()=>React.createElement('div',{className:'dsh-voice-assistant-panel'},
     React.createElement('style',null,panelStyles),React.createElement(Panel,{adapter}))))

@@ -9,13 +9,15 @@ test('built shared presenter uses native history and closing it never stops Host
   const calls=[],slots=new Map();let descriptor,released=0,created=0,notifyConversation
   let conversationSnapshot={order:['history'],nodes:new Map([['history',{key:'history',kind:'assistant-step',visibility:'visible',data:{blocks:[{kind:'text',text:'durable answer'}]}}]])}
   const state={sessionId:'owned-session',selectedModel:{provider:'test',model:'test-model'},capabilities:{host:'dsh',textInput:true,keywordWake:true,hostModels:[{provider:'test',model:'test-model',label:'Test model',providerLabel:'Test'}]},voice:{phase:'running',capture:'listening',outputEnabled:true},presentation:{statusText:'正在聆听'},
-    settings:{persona:'editable',asrMode:'native',ttsEndpoint:'https://tts.example/',captionSkin:'dark',captionFontSize:24,captionOpacity:.85,keywordWakeEnabled:true,keywordWakeAliases:'小助手'},credentials:{asr:{},tts:{}},pet:{available:false}}
+    settings:{voiceEnabled:true,persona:'editable',asrMode:'native',ttsEndpoint:'https://tts.example/',captionSkin:'dark',captionFontSize:24,captionOpacity:.85,keywordWakeEnabled:true,keywordWakeAliases:'小助手'},credentials:{asr:{},tts:{}},pet:{available:false}}
   const window={__ModuleLoader__:{load(value){descriptor=value}}}
   const script=await readFile(new URL('../dist/client.js',import.meta.url),'utf8')
   runInNewContext(script,{window,location:{href:'http://localhost/'},URL,crypto:globalThis.crypto,console,setTimeout,clearTimeout,
     navigator:{mediaDevices:{getUserMedia(){assert.fail('GUI must not open microphone')}}},
-    fetch:async(_url,options)=>{if(options.body){const value=JSON.parse(options.body);calls.push(value);if(value.action==='devices')return {ok:false,json:async()=>({error:'DEVICE_ELECTRON_NOT_FOUND'})}}return {ok:true,json:async()=>state}}})
-  const primitives={Button:p=>React.createElement('button',p,p.children),Input:React.forwardRef((p,ref)=>React.createElement('span',{className:'dsh-input-wrapper'},React.createElement('input',{...p,ref}))),
+    fetch:async(_url,options)=>{if(options.body){const value=JSON.parse(options.body);calls.push(value);if(value.action==='settings')Object.assign(state.settings,value.patch);if(value.action==='devices')return {ok:false,json:async()=>({error:'DEVICE_ELECTRON_NOT_FOUND'})}}return {ok:true,json:async()=>state}}})
+  const primitives={Button:p=>React.createElement('button',p,p.children),
+    Switch:({label,checked,onChange,disabled})=>React.createElement('button',{role:'switch','aria-label':label,'aria-checked':checked,disabled,onClick:()=>onChange(!checked)},React.createElement('span')),
+    Input:React.forwardRef((p,ref)=>React.createElement('span',{className:'dsh-input-wrapper'},React.createElement('input',{...p,ref}))),
     Modal:p=>p.open?React.createElement('section',null,p.children):null,IconMicrophoneOutlineRegular:()=>null}
   const plugin=descriptor.factory(name=>name==='react'?React:primitives)
   const ctx={effect:fn=>fn(),provide(){},layout:{selectPanel(){}},locale:{register:()=>()=>{},bind:()=>key=>key==='back'?'返回':''},
@@ -28,6 +30,14 @@ test('built shared presenter uses native history and closing it never stops Host
   assert.equal(view.toJSON().props.className,'dsh-voice-assistant-panel')
   assert.equal(created,0);assert.deepEqual(calls.map(x=>x.action),['prepare'])
   assert.ok(JSON.stringify(view.toJSON()).includes('durable answer'))
+  const voiceToggle=()=>view.root.findAllByType('button').find(button=>button.props.role==='switch')
+  assert.equal(voiceToggle().props['aria-label'],'语音助手')
+  assert.equal(voiceToggle().props['aria-checked'],true)
+  assert.equal(view.root.findByProps({className:'dsh-voice-toggle'}).findByType('button'),voiceToggle())
+  assert.equal(voiceToggle().findAllByType('span').length,1)
+  await renderer.act(async()=>{voiceToggle().props.onClick()})
+  assert.equal(voiceToggle().props['aria-checked'],false)
+  assert.deepEqual(calls.splice(1),[{action:'settings',patch:{voiceEnabled:false}}])
   await renderer.act(async()=>{view.root.findAllByType('button').find(button=>button.props.children==='设置').props.onClick();await Promise.resolve()})
   assert.equal(view.root.findByProps({className:'dsh-voice-settings-page'}).findByProps({className:'va-settings'}).type,'div')
   await renderer.act(async()=>{view.root.findAllByType('button').find(button=>button.props.children==='外观').props.onClick()})
