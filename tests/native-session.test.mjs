@@ -1,10 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createNativeSession } from '../src/native-session.mjs'
-function fixture(saved={}) {
+function fixture(saved={}, initialSections=[{name:'deployment:persona-prefix',text:'preset persona',order:40},{name:'tool:existing',text:'native tools',order:110}]) {
   const listeners=new Map(),sections=new Map(),hooks=new Map(),calls=[];let config={persona:'first'}
   const agent={id:saved.sessionId,status:'idle',inbox:{nextTurn:[],nextStep:[]},runMaintenance:async fn=>fn(new AbortController().signal),ctx:{systemPrompt:{async assemble(){
-    const initial={sections:[{name:'deployment:persona-prefix',text:'preset persona'},{name:'tool:existing',text:'native tools'}],contexts:[],variables:{}}
+    const initial={sections:initialSections,contexts:[],variables:{}}
     return hooks.get('system-prompt/assemble')?.(initial,{},async()=>initial)??initial
   }},on(name,fn){hooks.set(name,fn);return()=>hooks.delete(name)}}}
   const ctx={on(name,fn){listeners.set(name,fn);return()=>listeners.delete(name)},sessionController:{
@@ -63,10 +63,21 @@ test('voice instruction and enabled capability snapshot join the native prompt w
   await session.open()
   const prompt=await f.agent.ctx.systemPrompt.assemble()
   assert.equal(prompt.sections[0].text,'first [voice]')
+  assert.equal(prompt.sections[0].order,40)
   assert.deepEqual(JSON.parse(prompt.contexts[0].text),{speechCapabilities:{enabled:true,fields:[{id:'rate'}]}})
   await f.hooks.get('agent/request-context')({agent:f.agent,turn:1},async()=>{})
   assert.equal(session.getSpeechPolicy(1).enabled,true)
   session.close()
+})
+test('uses the native persona prefix order when adding a new prompt section',async()=>{
+  const f=fixture({},[{name:'tool:existing',text:'native tools',order:110}])
+  f.agent.ctx.systemPrompt.getSectionOrder=name=>{assert.equal(name,'DEPLOYMENT_PERSONA_PREFIX');return 10}
+  await f.session.open()
+  const expected={name:'voice-assistant:persona',text:'first',order:10,interpolate:false}
+  assert.deepEqual((await f.agent.ctx.systemPrompt.assemble()).sections[0],expected)
+  delete f.agent.ctx.systemPrompt.getSectionOrder
+  assert.deepEqual((await f.agent.ctx.systemPrompt.assemble()).sections[0],{...expected,order:0})
+  f.session.close()
 })
 test('recognition context uses only the latest visible assistant text in the current native session',async()=>{
   const f=fixture();f.session.close()

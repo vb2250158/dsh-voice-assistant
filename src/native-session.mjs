@@ -42,11 +42,12 @@ export function createNativeSession(ctx, { settings, binding, installTools = () 
       // its registration or replace native tools/system policy.
       scoped.push(found.agent.ctx.on('system-prompt/assemble', async (_assembly, _context, next) => {
         const value = await next()
-        const section = { name: 'voice-assistant:persona', text: persona + speechInstruction, interpolate: false }
+        const order = found.agent.ctx.systemPrompt.getSectionOrder?.('DEPLOYMENT_PERSONA_PREFIX') ?? 0
+        const section = { name: 'voice-assistant:persona', text: persona + speechInstruction, order, interpolate: false }
         let replaced = false
         const sections = value.sections.filter(item => item.name !== 'deployment:persona-suffix').map(item => {
           if (item.name !== 'deployment:persona-prefix') return item
-          replaced = true; return section
+          replaced = true; return Number.isFinite(item.order) ? { ...section, order: item.order } : section
         })
         if (!replaced) sections.unshift(section)
         const policy = speechPolicy(settings())
